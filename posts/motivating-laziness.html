@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head profile="http://www.w3.org/2005/10/profile">
+    <meta charset="UTF-8">
+    <meta name="description" content="Jonathan Lorimer">
+    <meta name="author" content="jonathanlorimer">
+    <meta name=viewport content="width=device-width, initial-scale=1">
+    <title>Jonathan Lorimer</title>
+    <!-- generics -->
+    <link rel="icon" href="/images/favicon-228.png" sizes="228x228">
+    <link rel="icon" href="/images/favicon-192.png" sizes="192x192">
+    <link rel="icon" href="/images/favicon-128.png" sizes="128x128">
+    <link rel="icon" href="/images/favicon-96.png" sizes="96x96">
+    <link rel="icon" href="/images/favicon-76.png" sizes="76x76">
+    <link rel="icon" href="/images/favicon-64.png" sizes="64x64">
+    <link rel="icon" href="/images/favicon-57.png" sizes="57x57">
+    <link rel="icon" href="/images/favicon-32.png" sizes="32x32">
+
+    <!-- Android -->
+    <link rel="shortcut icon" sizes="196x196" href=“/images/favicon-196.png">
+
+    <!-- iOS -->
+    <link rel="apple-touch-icon" href="/images/favicon-120.png" sizes="120x120">
+    <link rel="apple-touch-icon" href="/images/favicon-152.png" sizes="152x152">
+    <link rel="apple-touch-icon" href="/images/favicon-180.png" sizes="180x180">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/landing-page.css">
+    <link rel="stylesheet" href="/css/about-me.css">
+    <link rel="stylesheet" href="/css/experience.css">
+    <link rel="stylesheet" href="/css/education.css">
+    <link rel="stylesheet" href="/css/post-list.css">
+    <link rel="stylesheet" href="/css/post.css">
+    <link rel="stylesheet" href="/css/syntax.css">
+    <link rel="stylesheet" href="/css/footer.css">
+</head>
+<body>
+    <header>
+        <nav class="nav-grid">
+            <div id="ln-1" class="ln">1</div>
+            <div id="ln-2" class="ln">2</div>
+            <div id="ln-3" class="ln">3</div>
+            <div id="ln-4" class="ln">~</div>
+            <div id="ln-5" class="ln">~</div>
+            <div id="ln-6" class="ln">~</div>
+            <div id="data-menu">
+              <div class="data">data</div>
+              <div class="menu">Menu</div>
+            </div>
+            <div id="equals" class="char">=</div>
+            <div class="sum1 char">|</div>
+            <div class="sum2 char">|</div>
+            <a id="home-btn" class="no-link" href="/">
+                <div id="home-text" class="btn"> Home </div>
+            </a>
+            <a id="posts-btn" class="no-link" href="/posts.html">
+              <span class="sum-mobile char">|</span>
+              <div id="posts-text" class="btn"> Posts [Post] </div>
+            </a>
+            <a id="about-me-btn" class="no-link" href="/aboutme.html">
+              <span class="sum-mobile char">|</span>
+              <div id="about-me" class="btn"> AboutMe </div>
+            </a>
+        </nav>
+    
+    </header>
+
+<div id="index" class="post">
+    <h1 class="title"> Intro to FP Through λ-Calc Part 1. - Motivating Laziness </h1>
+
+    <h2 class="byline">by Jonathan Lorimer</h2>
+
+    <div class="date">Mar 19, 2020</div>
+
+    <div class="post-tags">
+      <span>Tags: </span>
+      <span class="post-tag" id="lambda-calculus">lambda-calculus</span>
+    </div>
+
+    <article class="post-content">
+        <h1 id="table-of-contents">Table of Contents</h1>
+<ul>
+<li><a href="#introduction">Introduction</a>
+<ul>
+<li><a href="#attribution">Attribution</a></li>
+</ul></li>
+<li><a href="#terminology--termination">Terminology &amp; Termination</a>
+<ul>
+<li><a href="#normal-form">Normal Form</a></li>
+<li><a href="#intermediate-normal-forms">Intermediate Normal Forms</a></li>
+<li><a href="#reduction-orders">Reduction Orders</a></li>
+<li><a href="#section-summary">Section Summary</a></li>
+<li><a href="#important-definitions">Important Definitions</a></li>
+</ul></li>
+<li><a href="#a-lazy-solution">A Lazy Solution</a>
+<ul>
+<li><a href="#thunks">Thunks</a></li>
+<li><a href="#lazy-evaluation">Lazy Evaluation</a></li>
+</ul></li>
+<li><a href="#references">References</a></li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<p>This is the first in a series of blog posts I am writing, about a book by Greg Michaelson called <em>An Introduction to Functional Programming Through Lambda Calculus</em> (referred to as 'The Book' throughout). Prior to reading this book, I already had a cursory understanding of the lambda calculus, but I wanted to solidify my understanding as well as find connections to my primary area of interest; coding in Haskell. The format of these posts won't be a review of the book, but rather an exposition of the three observations I found most interesting. This particular post looks at evaluation order. Before reading the book I found evaluation order an impenetrable subject, it reminded me of order of operations from grade school math, and most explanations I came across were crucially missing the <em>why</em>. I suppose evaluation order is a low-level, procedural mechanism, and those who study it usually approach it as an application of the theory they already understand. I am coming at this subject from the opposite direction, I am an end-user of Haskell with no computer science background, so evaluation order is the first layer of theory beneath the surface of Haskell’s pleasant high level syntax. I hope that a short overview of evaluation order can help us understand why laziness is such a natural choice for Haskell; a language built on top of the lambda calculus.</p>
+<blockquote>
+<p>N.B. this post assumes basic familiarity with the syntax of lambda calculus <a href="https://personal.utdallas.edu/~gupta/courses/apl/lambda.pdf">this is not a bad starting point</a></p>
+</blockquote>
+<h2 id="attribution">Attribution</h2>
+<p>The majority of the content that I reference from the book occurs in Chapter 8, between pages 187 and 205 (Michaelson 2011). I will explicitly cite any direct quotations, or references that occur outside of these pages, but pretty much all of the contents of this blogpost comes from Michaelson; to avoid tedious repetition of the citation I am directing you to Chapter 8 now.</p>
+<h1 id="terminology--termination">Terminology &amp; Termination</h1>
+<h2 id="normal-form">Normal Form</h2>
+<p><strong>Normal form</strong> is the description of a λ-expression which cannot be β-reduced any further. This means that all external and internal function applications are reduced</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λx<span class="op">.</span>y<span class="op">.</span>z<span class="op">.</span>xy) (λa<span class="op">.</span>a) (λb<span class="op">.</span>c<span class="op">.</span>b) <span class="ot">=&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> (λy<span class="op">.</span>z<span class="op">.</span>(λa<span class="op">.</span>a) y) (λb<span class="op">.</span>c<span class="op">.</span>b) <span class="ot">=&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span><span class="op">.</span> λz<span class="op">.</span>(λa<span class="op">.</span>a)(λb<span class="op">.</span>c<span class="op">.</span>b) <span class="ot">=&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span><span class="op">.</span> λz<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>b</span></code></pre></div>
+<p>lines 1-3, in this first example, represent the reduction of external function applications, while line 4 represents the result of an internal function application, because the reduction occurs inside the function body. The reduction of internal applications is important because some expressions that would reduce to the same normal form appear different when internal applications are not reduced. For example, in the code block below, at line 2 the λ-expression looks different from the λ-expression at line 3 from before, however it is clear at the end of reduction that both λ-expressions are the same.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λy<span class="op">.</span>z<span class="op">.</span>b<span class="op">.</span>yb) (λx<span class="op">.</span>c<span class="op">.</span>x) <span class="ot">=&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> λz<span class="op">.</span>b<span class="op">.</span>(λx<span class="op">.</span>c<span class="op">.</span>x)b <span class="ot">=&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span><span class="op">.</span> λz<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>b</span></code></pre></div>
+<p>This raises an important point, by the Church-Rosser theorem, all normal forms are unique. Different λ-expressions may converge on normal forms. The Church-Rosser theorem says that if λ-expression <code>A</code> can be λ-converted (or λ-abstracted) to <code>B</code> (i.e. replace a concrete value with a bound variable through λ-abstraction and then apply that function to the concrete value) then both <code>A</code> and <code>B</code> reduce to normal form <code>C</code> (Turner 2004:189). Below is an example of λ-abstraction, given the name “abstraction” because we are abstracting out the variable <code>c</code> and thus converting a more normalized expression to one with an additional lambda.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> λa<span class="op">.</span>x<span class="op">.</span>x(λb<span class="op">.</span>b) <span class="ot">=&gt;</span> λ<span class="op">-</span>abstraction</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> (λc<span class="op">.</span>a<span class="op">.</span>x<span class="op">.</span>xc)(λb<span class="op">.</span>b)</span></code></pre></div>
+<p>A term is said to be <strong>Normalizing</strong> when it has a normal form but has not yet been reduced to normal form. Normal form is important in lambda calculus because it is effectively how computation is carried out, the reduction of a normalizing term shares a parallel with elimination rules in formal logic, or the evaluation of an arithmetic phrase.</p>
+<h2 id="intermediate-normal-forms">Intermediate Normal Forms</h2>
+<p>There are two intermediate normal forms. The first is <strong>Weak Head Normal Form</strong> (WHNF), this is a λ-expression whose body contains a other λ-expressions that can be applied further (an unevaluated function application is formally referred to as a <strong>Redex</strong>). Line 1 in the following example is <em>NOT</em> in WHNF because the leftmost outermost λ-expression is itself a <strong>Redex</strong>, but once the last external function application has been applied (line 3) the expression is in WHNF. A good indication that you are at least in WHNF (using the syntax that I have chosen) is that there are no brackets around the leftmost λ-abstraction. This indicates that there are no external <strong>Redexes</strong>, and all that is left to evaluate is the function body, where a function body is defined as such <code>λ&lt;bound-variable&gt;.&lt;function-body&gt;</code>. The next reduction (line 4) happens "under the lambda" in the function body, and now we are in our second intermediate normal form: <strong>Head Normal Form</strong> (HNF). The definition of HNF is that there are no remaining external <em>OR</em> internal redexes, in line 4 <code>y((λz.z)((λa.a)(λb.b)))</code> is not considered a redex because the bound variable y is preventing β-reduction. We can, however, continue evaluting the argument expression. For reference, line 4 the bound variable <code>y</code> is the function expression, and <code>((λz.z)((λa.a)(λb.b)))</code> is the argument expression. We evaluate the argument expression in lines 4 through 6, until we reach <strong>Normal Form</strong>(NF), at which point every λ-expression that can be evaluated has been evaluated. As a re-cap: line 1 and 2 is an external redex and therefore not in any intermediate normal form. Line 3 is the only line that is in WHNF but not in HNF, line 4 and 5 are in HNF but not NF, and line 6 is in NF (it is also technically in HNF and WHNF).To put it more succinctly: WHNF is a superset of HNF, which is a superset of NF.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λv<span class="op">.</span>x<span class="op">.</span>y<span class="op">.</span>(xy)(xv))((λa<span class="op">.</span>a)(λb<span class="op">.</span>b))(λz<span class="op">.</span>z) <span class="ot">=&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> (λv<span class="op">.</span>x<span class="op">.</span>y<span class="op">.</span>(xy)(x((λa<span class="op">.</span>a))))(λz<span class="op">.</span>z) <span class="ot">=&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span><span class="op">.</span> λy<span class="op">.</span>((λz<span class="op">.</span>z)y)((λz<span class="op">.</span>z)((λa<span class="op">.</span>a)(λb<span class="op">.</span>b))) <span class="ot">=&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span><span class="op">.</span> λy<span class="op">.</span>y((λz<span class="op">.</span>z)((λa<span class="op">.</span>a)(λb<span class="op">.</span>b))) <span class="ot">=&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="dv">5</span><span class="op">.</span> λy<span class="op">.</span>y((λa<span class="op">.</span>a)(λb<span class="op">.</span>b)) <span class="ot">=&gt;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="dv">6</span><span class="op">.</span> λy<span class="op">.</span>y(λb<span class="op">.</span>b)</span></code></pre></div>
+<h2 id="reduction-orders">Reduction Orders</h2>
+<p>From here, things get slightly more complicated, but also more interesting. <strong>Normal Order</strong> (NO) reduction evaluates the leftmost redex by passing the argument <em>unevaluated</em>, while <strong>Applicative Order</strong> (AO) evaluates that argument that is being passed. One can already imagine that AO evaluation is more efficient (in the sense of fewer reduction steps); rather than passing around unevaluated lambda terms, why not evaluate them once and then substitute them in a more reduced form? AO evaluation also has a drawback of eagerly reducing a λ-expression, what if this expression is unused? Or worse, what if it never terminates? To summarize the distinction between the two evaluation orders, NO reduction has the benefit of terminating more frequently than AO evaluation, but at the cost of a potentially more expensive reduction process. To clarify, all λ-expressions that terminate upon AO reduction will also terminate upon NO reduction, but not necessarily the other way around. Below are two examples of the differences between AO and NO reduction, the first highlights the inefficiency of NO, while the second illustrates non-termination of AO.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- Inefficiency of Normal Order Reduction</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- Normal Order Reduction</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λx<span class="op">.</span>xx)((λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> ((λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t))((λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span><span class="op">.</span> ((λb<span class="op">.</span>c<span class="op">.</span>c)(λt<span class="op">.</span>t))((λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span><span class="op">.</span> (λc<span class="op">.</span>c)((λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="dv">5</span><span class="op">.</span> (λc<span class="op">.</span>c)((λb<span class="op">.</span>c<span class="op">.</span>c)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="dv">6</span><span class="op">.</span> (λc<span class="op">.</span>c)(λc<span class="op">.</span>c) <span class="ot">=&gt;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="dv">7</span><span class="op">.</span> λc<span class="op">.</span>c</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">------------------------------------------------------</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">-- Applicative Order Reduction</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λx<span class="op">.</span>xx)((λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> (λx<span class="op">.</span>xx)((λb<span class="op">.</span>c<span class="op">.</span>c)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span><span class="op">.</span> (λx<span class="op">.</span>xx)(λc<span class="op">.</span>c) <span class="ot">=&gt;</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span><span class="op">.</span> (λc<span class="op">.</span>c)(λc<span class="op">.</span>c) <span class="ot">=&gt;</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="dv">5</span><span class="op">.</span> λc<span class="op">.</span>c</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- Non-Termination of Applicative Order Reduction</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- Normal Order Reduction</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λf<span class="op">.</span>(λs<span class="op">.</span>f(s s))(λs<span class="op">.</span>f(s s)))(λx<span class="op">.</span>y<span class="op">.</span>y) <span class="ot">=&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> (λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s))) <span class="ot">=&gt;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span><span class="op">.</span> (λx<span class="op">.</span>y<span class="op">.</span>y)((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s))) <span class="ot">=&gt;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span><span class="op">.</span> (λy<span class="op">.</span>y)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">-----------------------------------------------------</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co">-- Applicative Order Reduction</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λf<span class="op">.</span>(λs<span class="op">.</span>f(s s))(λs<span class="op">.</span>f(s s)))(λx<span class="op">.</span>y<span class="op">.</span>y) <span class="ot">=&gt;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co">-- λx.y.y is already in NF, so we procede</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> (λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s)) (λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s)) <span class="ot">=&gt;</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co">-- The argument λs.(λx.y.y)(s s) is in WHNF so we procede</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span><span class="op">.</span> (λx<span class="op">.</span>y<span class="op">.</span>y)</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    ((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s)) (λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s))) <span class="ot">=&gt;</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="co">-- Ahh! the argument (λs.(λx.y.y)(s s))(λs.(λx.y.y)(s s)) can be reduced</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span><span class="op">.</span> (λx<span class="op">.</span>y<span class="op">.</span>y)</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    ((λx<span class="op">.</span>y<span class="op">.</span>y)</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>      ((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s)) (λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s)))) <span class="ot">=&gt;</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="dv">5</span><span class="op">.</span> (λx<span class="op">.</span>y<span class="op">.</span>y)</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    ((λx<span class="op">.</span>y<span class="op">.</span>y)</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>      ((λx<span class="op">.</span>y<span class="op">.</span>y)</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>        ((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s)) (λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s))))) <span class="ot">=&gt;</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="dv">6</span><span class="op">.</span> (λx<span class="op">.</span>y<span class="op">.</span>y)</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    ((λx<span class="op">.</span>y<span class="op">.</span>y)</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>      <span class="op">...</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>        ((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s)) (λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(s s)))))</span></code></pre></div>
+<p>The non-terminating example is a little bit complex, so let's dig in. There are two parts <code>(λf.(λs.f(s s))(λs.f(s s)))</code> and <code>(λx.y.y)</code>. The first λ-expression is a common combinator known as a fixpoint, it is a higher order function, that represents a general approach to recursion in the simply typed lambda calculus (basic self application <code>(λs.ss)λs.ss</code> doesn't typecheck). It is not important to understand the fixpoint combinator now, but what is important is to recognize that this kind of recursion is impossible in applicative order evaluation, because the generative self application is passed as an argument, and therefore evaluated immediately. Immediate evaluation causes us to apply our λ-expression to itself infinitely with no opportunity for the logic to fork to a base case. The second λ-expression (<code>λx.y.y</code>) was chosen trivially, because it terminates instantly; I didn't want to have to think too hard about a recursive example that terminates in normal order evaluation. However, this function could have been any function at all, and the applicative order evaluation would never terminate.</p>
+<p>Another important feature of NO evaluation (which is delayed relative to AO evaluation) is that it allows for <em>codata</em>, otherwise known as infinite data structures. In the next section we will look at how one can achieve the benefits of both evaluation strategies, but first a summary of the terms we have looked at.</p>
+<h2 id="section-summary">Section Summary</h2>
+<p>I mentioned in the introduction that I am interested in making the <em>why</em> of the details (reduction forms and evaluation strategies) of lambda calculus apparent. Lambda calculus is a stunningly simple language, I think that there are 3 syntactic constructs in the whole language (λ-abstraction, application, and variables). Like many ideas in functional programming, lambda calculus is difficult to understand, not because it is complicated, but because it is so simple. The difficulty arises in the nuance and interpretation of the simple constructs. Therefore it is not λ-abstraction, application, or variables that are tricky, but it is how they work together. It is true that λ-expressions converge on a <strong>Normal Form</strong>, but the order in which we reduce λ-terms have divergent properties (<strong>Normal Order</strong> may take more steps to reduce, <strong>Applicative Order</strong> may not terminate where NO evaluation would), so now there is at least 1 important decision to make if we are to automate evaluation. Additionally, there are usually multiple steps in β-reduction, it is unclear at what point we are done each step, is it <strong>Head Normal Form</strong> or <strong>Weak Head Normal Form</strong>? In the abstract of <em>A Call-By-Need Lambda Calculus</em> the authors note that: "The mismatch between the operational semantics of the lambda calculus and the actual behavior of implementations is a major obstacle for compiler writers" (Ariola et al 1995:233). A similar sentiment is noted in the introduction for <em>The Lazy Lambda Calculus</em>, after citing a "succesful definition" for lambda calculus predicated on <strong>Head Normal Forms</strong> the author identifies an inconsistency in several prominent implementations of lambda calculus as a programming language: "But do these languages as defined and implemented actually evaluate terms to head normal form? To the best of my knowledge, not a single one of them does so. Instead, they evaluate to weak head normal form" (Abramsky 2002:3). The main point that I am trying to demonstrate with these quotations is that the complexity of the lambda calculus lies in moving from the beautiful, simple, pure semantics to a sensible application. Therefore, a nuanced understanding of lambda calculus, and how it can serve as a foundation for a programming language, requires an understanding of evaluation strategies and the different intermediary normal forms.</p>
+<h2 id="important-definitions">Important Definitions</h2>
+<p><strong>Normal Form</strong>: A fully evaluated / reduced λ-expression. These are unique, by the Church-Rosser theorem!</p>
+<p><strong>Head Normal Form</strong>: A λ-expression that has all external and internal redexes evaluated, but is not fully evaluated. The only way to achieve a situation like this is to have a bound variable as the leftmost function expression in the body of a λ-expression, whose substitution is delaying evaluation of the entire function body i.e. <code>λy.y((λx.x)(λz.z))</code></p>
+<p><strong>Weak Head Normal Form</strong>: A λ-expression that has been evaluated up to the last λ-abstraction, but whose function body is still unevaluated.</p>
+<p><strong>Redex</strong>: An unevaluated function application</p>
+<p><strong>Normal Order</strong>: Evaluation by substituting the unevaluated λ-expression for all the bound variables that share the same name as the argument</p>
+<p><strong>Applicative Order</strong>: Reduction by evaluating the λ-expression that the function is applied to, and then substituting the normalized form (could be normal form or head normal form) for all the bound variables that share the same name as the argument.</p>
+<p>For those of you who are familiar with Haskell, <a href="https://github.com/monoidmusician">monoidmusician</a> wrote out a tiny DSL and some predicates to help understand the definitions of normal forms and their distinctions:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">LC</span> <span class="ot">=</span> <span class="dt">Abs</span> <span class="dt">LC</span> <span class="op">|</span> <span class="dt">App</span> <span class="dt">LC</span> <span class="dt">LC</span> <span class="op">|</span> <span class="dt">Var</span> <span class="dt">Int</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="ot">isRedex ::</span> <span class="dt">LC</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>isRedex (<span class="dt">App</span> (<span class="dt">Abs</span> f) a) <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>isRedex _               <span class="ot">=</span> <span class="dt">False</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="ot">isNF ::</span> <span class="dt">LC</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>isNF t <span class="op">|</span> isRedex t <span class="ot">=</span> <span class="dt">False</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>isNF (<span class="dt">Abs</span> t)       <span class="ot">=</span> isNF t</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>isNF (<span class="dt">App</span> f a)     <span class="ot">=</span> isNF f <span class="op">&amp;&amp;</span> isNF a</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>isNF _             <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="ot">isHNF ::</span> <span class="dt">LC</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>isHNF t <span class="op">|</span> isRedex t <span class="ot">=</span> <span class="dt">False</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>isHNF (<span class="dt">Abs</span> t)       <span class="ot">=</span> isHNF t <span class="co">-- this is the difference between WHNF and HNF!</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>isHNF (<span class="dt">App</span> f a)     <span class="ot">=</span> isHNF f</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>isHNF _             <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="ot">isWHNF ::</span> <span class="dt">LC</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>isWHNF t <span class="op">|</span> isRedex t <span class="ot">=</span> <span class="dt">False</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>isWHNF (<span class="dt">Abs</span> t)       <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>isWHNF (<span class="dt">App</span> f a)     <span class="ot">=</span> isWHNF f</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>isWHNF _             <span class="ot">=</span> <span class="dt">True</span></span></code></pre></div>
+<h1 id="a-lazy-solution">A Lazy Solution</h1>
+<p>There are two solutions to the problem presented by the asymmetric benefits of the competing evaluation orders. The first is crude, but an existent pattern in most languages that support lambdas, it is a manually delayed evaluation using λ-abstraction; thunks. The second solution is more robust but requires built in language support, it is referred to as lazy evaluation.</p>
+<h2 id="thunks">Thunks</h2>
+<p>A thunk is a method for delaying evaluation by wrapping an expression in an extra layer of λ-abstraction. Thunks require more than just changing the definition, the consumers of those thunked values need to change the way they handle data; the consumer must now explicitly evaluate the expressions. The simplest example of a thunk would be this:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λa<span class="op">.</span>a)(λb<span class="op">.</span>b)        <span class="co">-- This would be immediately evaluated</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> λdummy<span class="op">.</span>(λa<span class="op">.</span>a)(λb<span class="op">.</span>b) <span class="co">-- the evaluation of the internal redex is deffered because we are in WHNF now</span></span></code></pre></div>
+<p>Let's see how this can help us avoid non-termination in the <strong>Applicative Order</strong> evaluation example used in the previous section. We should note two things here 1. I use the name <code>dummy</code> to indicate a thunk; basically I don't intend on ever using this variable 2. We are evaluating arguments up to WHNF, otherwise we would still need to evaluate the internal redex and regress into non-termination</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- For reference this is the λ-expression before the use of thunks</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- (λf.(λs.f(s s))(λs.f(s s)))(λx.y.y)</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λf<span class="op">.</span>(λs<span class="op">.</span>f(λdummy<span class="op">.</span>(s s))(λs<span class="op">.</span>f(λdummy<span class="op">.</span>(s s))))(λx<span class="op">.</span>y<span class="op">.</span>y) <span class="ot">=&gt;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> (λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(λdummy<span class="op">.</span>(s s))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(λdummy<span class="op">.</span>(s s)))) <span class="ot">=&gt;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span><span class="op">.</span> (λx<span class="op">.</span>y<span class="op">.</span>y)(λdummy<span class="op">.</span>((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>y)(λdummy<span class="op">.</span>(s s))))) <span class="ot">=&gt;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span><span class="op">.</span> λy<span class="op">.</span>y</span></code></pre></div>
+<p>Because the <code>λdummy</code> lambda abstraction is in the way, the argument to <code>λx.y.y</code> is not evaluated any further, and the entire λ-expression terminates. Let's look at a slightly different example to see how the function we pass to the higher-order recursive function <code>(λs.f(λdummy.(s s))(λs.f(λdummy.(s s))))</code> must now choose to explicitly evaluate the thunks. In the first example below I substitute <code>λx.y.y</code> for <code>λx.y.x</code> a λ-expression that does not terminate, even under <strong>Normal Order</strong> evaluation, when the recursive function is applied to it. However, with the extra layer of thunks, we safely reach a <strong>Weak Head Normal Form</strong>. This is because the function <code>λx.y.x</code> does not explicitly evaluate the recursive function. Below the dashed line we can see what happens when we use a function that explicitly evaluates the thunk, <code>λx.y.x &lt;λ-expr&gt;</code>, which applies the value <code>&lt;λ-expr&gt;</code> (a stand in for any λ-term) to the recursive function to keep it recursing.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λf<span class="op">.</span>(λs<span class="op">.</span>f(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>f(λdummy<span class="op">.</span>(s s))))(λx<span class="op">.</span>y<span class="op">.</span>x) <span class="ot">=&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> (λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x)(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x)(λdummy<span class="op">.</span>(s s))) <span class="ot">=&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span><span class="op">.</span> (λx<span class="op">.</span>y<span class="op">.</span>x)(λdummy<span class="op">.</span>((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x)(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x)(λdummy<span class="op">.</span>(s s))))) <span class="ot">=&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span><span class="op">.</span> λy<span class="op">.</span>(λdummy<span class="op">.</span>((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x)(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x)(λdummy<span class="op">.</span>(s s))))) <span class="ot">=&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">-------------------------------------------------------------------------------------------------------</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- Instead of &lt;λ-expr&gt; I will use the identity function λz.z</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λf<span class="op">.</span>(λs<span class="op">.</span>f(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>f(λdummy<span class="op">.</span>(s s))))(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z)) <span class="ot">=&gt;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> (λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s))) <span class="ot">=&gt;</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span><span class="op">.</span> (λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s))))) <span class="ot">=&gt;</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co">-- Now that we have the extra λz.z on the outside, evaluation can continue</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span><span class="op">.</span> λy<span class="op">.</span>(λdummy<span class="op">.</span>((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))))(λz<span class="op">.</span>z) <span class="ot">=&gt;</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="dv">5</span><span class="op">.</span> λy<span class="op">.</span>((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))) <span class="ot">=&gt;</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="dv">6</span><span class="op">.</span> λy<span class="op">.</span>((λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))))) <span class="ot">=&gt;</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="dv">7</span><span class="op">.</span> λy<span class="op">.</span>(y<span class="op">.</span>(λdummy<span class="op">.</span>((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))))(λz<span class="op">.</span>z)) <span class="ot">=&gt;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="dv">8</span><span class="op">.</span> λy<span class="op">.</span>(y<span class="op">.</span>((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s))))) <span class="ot">=&gt;</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="op">...</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>n<span class="op">.</span> λy<span class="op">.</span>(y<span class="op">.</span>(y<span class="op">.</span>(λdummy<span class="op">.</span>((λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))(λs<span class="op">.</span>(λx<span class="op">.</span>y<span class="op">.</span>x(λz<span class="op">.</span>z))(λdummy<span class="op">.</span>(s s)))))(λz<span class="op">.</span>z)))</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="op">...</span></span></code></pre></div>
+<p>We can see that the thunk style does not prevent non-termination generally, but allows us to evaluate some λ-expressions that would not normally terminate under <strong>Applicative Order</strong> evaluation. Lazy Evaluation accomplishes the same thing, but through and entirely different evaluation strategy.</p>
+<h2 id="lazy-evaluation">Lazy Evaluation</h2>
+<p>Lazy Evaluation only evaluates a λ-expression when it is in the function position ie. <code>&lt;function position&gt; &lt;argument position&gt;</code>. The crux of lazy evaluation is that it requires that we keep a reference to λ-expressions that have been substituted for the same bound variables, and then once one of those expressions is evaluated, that value is substituted for the rest. I will use the notation <code>1(λx.x)</code> to index λ-expressions, λ-expressions with the same index have been substituted under the same bound variable and can be replaced by a normal form once any instance has been evaluated.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">.</span> (λx<span class="op">.</span>xx)((λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span><span class="op">.</span> (<span class="dv">1</span>(λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t)<span class="dv">1</span>(λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- We evalute the λ-expression in function position</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span><span class="op">.</span> (<span class="dv">1</span>(λb<span class="op">.</span>c<span class="op">.</span>c)(λt<span class="op">.</span>t)<span class="dv">1</span>(λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span><span class="op">.</span> (<span class="dv">1</span>(λc<span class="op">.</span>c)<span class="dv">1</span>(λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="dv">5</span><span class="op">.</span> (<span class="dv">1</span>(λc<span class="op">.</span>c)<span class="dv">1</span>(λa<span class="op">.</span>b<span class="op">.</span>c<span class="op">.</span>c)(λs<span class="op">.</span>s)(λt<span class="op">.</span>t)) <span class="ot">=&gt;</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co">-- Now that the first λ-expr is fully evaluated we substitute it for all</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co">-- expressions with the same index</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="dv">6</span><span class="op">.</span> <span class="dv">1</span>(λc<span class="op">.</span>c)<span class="dv">1</span>(λc<span class="op">.</span>c) <span class="ot">=&gt;</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="dv">7</span><span class="op">.</span> λc<span class="op">.</span>c</span></code></pre></div>
+<p>Lazy evaluation has the benefit of terminating as frequently as <strong>Normal Order</strong> evaluation, but maintaining the efficiency of <strong>Applicative Order</strong> evaluation. I will defer to Ariola et al. for an explanation of how laziness provides the desirable properties of both NO and AO evaluation. "lazy languages only reduce an argument if the value of the corresponding formal parameter is needed for the evaluation of the procedure body"(Ariola et al 1995:233), this delayed evaluation is similar to NO, except that evaluation is delayed even further; rather than evaluating the entire λ-term only the expression in function position is evaluated. "after reducing the argument, the evaluator will remember the resulting value for future references to that formal parameter"(Ariola et al 1995:233) where AO ensures that bound variables are reduced only once by evaluating function arguments as they are substituted for named variables, lazy evaluation ensures that bound variables are only evaluated once by memoizing the result of evaluation and maintaining a reference from each λ-expression to the associated evaluated value. As mentioned in the section summary, the importance of evaluation order and intermediate normal forms is that they are necessary considerations for pragmatic implementations of programming languages predicated on the lambda calculus. The motivation for lazy evaluation follows logically from this consideration, as it is the 'best of both worlds'. However, it is not so straightforward, there is an unfortunate quirk with lazyness, namely that one "cannot use the calculus to reason about sharing in the evaluation of a program"(Ariola et al 1995:233). Ariola et al. provide a solution to this quirk in their paper <em>A Call-By-Need Lambda Calculus</em>, however that is beyond the scope of this post. I bring up the difficulty of formalizing laziness within lambda calculus to demonstrate how complicated the operationalization of these calculi can be. However, the foundational building blocks for reasoning about the operational semantics of the lambda calculus are intermediate normal forms, and evaluation strategies.</p>
+<h1 id="references">References</h1>
+<ol>
+<li>Abramsky, Samson. “The Lazy Lambda Calculus.” Declarative Programming, March 1, 2002.</li>
+<li>Ariola, Zena M., John Maraist, Martin Odersky, Matthias Felleisen, and Philip Wadler. “A Call-by-Need Lambda Calculus.” In Proceedings of the 22nd ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages, 233–246. POPL ’95. New York, NY, USA: Association for Computing Machinery, 1995. <a href="https://doi.org/10.1145/199448.199507" class="uri">https://doi.org/10.1145/199448.199507</a>.</li>
+<li>Michaelson, Greg. An Introduction to Functional Programming Through Lambda Calculus. Courier Corporation, 2011.</li>
+<li>Turner, David. “Church’s Thesis and Functional Programming.” JOURNAL OF UNIVERSAL COMPUTER SCIENCE 10 (2004): 187–209.</li>
+</ol>
+<p>Thank you to Li-yao Xia for providing feedback, and to monoidmusician for discussing the distinction between Weak Head Normal Form and Head Normal Form with me.</p>
+<p>If you would like to comment on this post, the comments section is <a href="https://github.com/JonathanLorimer/personal-website-builder/issues/2">here</a></p>
+    </article>
+
+</div>
+
+<div class="left-sidebar">
+    <a class="ext-link no-link" href="https://github.com/jonathanlorimer">
+        <img class="ext-link-img" src="/images/github-icon.svg" alt="Github Profile"/>
+    </a>
+
+    <a class="ext-link no-link" href="https://linkedin.com/in/jonathan-lorimer-dev">
+        <img class="ext-link-img" src="/images/linkedin-icon.svg" alt="LinkedIn Profile"/>
+    </a>
+
+    <a class="ext-link no-link" href="https://twitter.com/jonathanlorime1">
+        <img class="ext-link-img" src="/images/twitter-icon.svg" alt="Twitter Profile"/>
+    </a>
+</div>
+<footer>
+    Built with Haskell using <a href="https://github.com/ChrisPenner/slick">slick</a> ❤️
+</footer>
+
+</body>
+</html>

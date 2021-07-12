@@ -1,0 +1,76 @@
+
+.experience-container {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 5rem;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 1;
+  padding-right: 5rem;
+}
+
+.employment-details {
+  padding-bottom: 1rem;
+  font-size: 1.6rem;
+}
+
+.job-title {
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.company {
+  font-size: 1.8rem;
+  font-weight: 300;
+}
+
+.dates-container {
+  display: flex;
+}
+
+.dates-container span::after {
+  content: "\00a0 ";
+}
+
+.description {
+  font-size: 1.6rem;
+}
+
+.technologies {
+  display: flex;
+  width: 20.5rem;
+  flex-shrink: 0;
+}
+
+.tech-list {
+  font-size: 1.6rem;
+  font-weight: 300;
+}
+
+.description {
+  padding-left: .5rem;
+}
+.description li {
+  padding-bottom: .3rem;
+  text-indent: -.5rem;
+}
+.description li::before {
+  content: "-";
+  text-indent: -.5rem;
+}
+
+.stack::after { content: "\00a0 "; }
+
+.tech-item:first-child::before {
+  content: "[ "
+}
+
+.tech-item:last-child::after {
+  content: " ] "
+}
+.tech-item:not(:first-child)::before {
+  content: ", "
+}

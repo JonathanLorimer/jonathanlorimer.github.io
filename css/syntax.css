@@ -1,0 +1,44 @@
+pre {
+    font-family: 'Iosevka', sans-serif ;
+    background-color: #1b2b34;
+    padding: 0rem 1.6rem;
+    margin: 3rem 0rem;
+    font-size: 1.6rem;
+    border-radius: 4px;
+}
+
+code {
+    font-family: 'Iosevka', sans-serif ;
+    background-color: #1b2b34;
+    color: #d8dee9;
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+}
+
+p code {
+  font-size: 1.6rem;
+}
+
+/* KeyWordTok */
+.sourceCode .kw { color: #c594c5; }
+/* DataTypeTok */
+.sourceCode .dt { color: #FAC863; }
+
+/* DecValTok (decimal value), BaseNTok, FloatTok */
+.sourceCode .dv, .sourceCode .bn, .sourceCode .fl { color: #F99157; }
+/* CharTok */
+.sourceCode .ch { color: #99C794; }
+/* StringTok */
+.sourceCode .st { color: #99C794; }
+/* CommentTok */
+.sourceCode .co { color: #7E8E91; }
+/* OtherTok */
+.sourceCode .ot { color: #d8dee9; }
+/* AlertTok */
+.sourceCode .al { color: #EC5f67; font-weight: bold; }
+/* FunctionTok */
+.sourceCode .fu { color: #333; }
+/* RegionMarkerTok */
+.sourceCode .re { color: red }
+/* ErrorTok */
+.sourceCode .er { color: #EC5f67; font-weight: bold; }

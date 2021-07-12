@@ -1,0 +1,27 @@
+.aboutme {
+  padding: 18rem 10rem 10rem;
+}
+
+@media screen and (max-width: 600px) {
+  .aboutme {
+    padding: 9rem 5rem 5rem;
+  }
+}
+
+.bio {
+  padding-bottom: 4rem;
+  color: #1d263b;
+}
+
+.personal-details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-bottom: 2rem;
+}
+
+.resume-header {
+  font-size: 3rem;
+  padding-bottom: 3rem;
+}

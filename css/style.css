@@ -1,0 +1,143 @@
+/* CSS Reset */
+@font-face {
+  font-family: 'Iosevka';
+  src: url('/fonts/iosevka-term-medium.woff') format('woff');
+  font-weight: 500; }
+
+@font-face { font-family: 'Iosevka';
+  src: url('/fonts/iosevka-term-light.woff') format('woff');
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Bold.ttf') format('ttf');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Regular.ttf') format('ttf');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Light.ttf') format('ttf');
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: 'Iosevka';
+  src: url('/fonts/iosevka-term-bold.woff') format('woff');
+  font-weight: 700;
+}
+
+*, *:before, *:after {
+  box-sizing: border-box;
+  border: 0;
+  vertical-align: baseline;
+  margin: 0;
+  padding: 0;
+}
+
+@media screen and (min-width: 1280px) {
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+a:hover, a:visited{
+  text-decoration: underline;
+  color: #5C6784;
+}
+
+.no-link, .no-link:hover, .no-link:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Variables */
+html {
+  font-family: 'Iosevka', sans-serif ;
+  font-weight: 300;
+  font-size: 62.5%;
+  color: #1d263b;
+  background: #fef5e6;
+}
+
+@media screen and (max-width: 768px) {
+  html {
+    font-size: 56.25%
+  }
+}
+
+@media screen and (max-width: 680px) {
+  html {
+    font-size: 50%
+  }
+}
+@media screen and (max-width: 600px) {
+  html {
+    font-size: 45%
+  }
+}
+
+p {
+  margin-top: 1em;
+  font-weight: 300;
+  font-size: 1.8rem;
+}
+
+h2 {
+  font-weight: 500;
+}
+
+ul {
+  list-style-type: none;
+}
+
+blockquote {
+  color: #AAA49B;
+  padding-left: 2rem;
+  position: relative;
+}
+
+blockquote::before {
+  content: " ";
+  width: 0.2rem;
+  background-color: #AAA49B;
+  height: 100%;
+  display: block;
+  left: 0;
+  top: 0;
+  position: absolute;
+}
+
+#index {
+  width: 100%;
+  max-width: 128rem;
+}
+
+.title {
+  text-align: left;
+  font-size: 4rem;
+  padding-bottom: 2rem;
+}
+
+.title::after {
+  content: " ";
+  height: 0.1rem;
+  background-color: black;
+  width: 100%;
+  display: block;
+  margin-top: 1rem;
+}
+/*# sourceMappingURL=style.css.map */
