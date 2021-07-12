@@ -1,0 +1,14 @@
+.landing {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+}
+
+#hero-image {
+  max-height: 25rem;
+}
+
+/*# sourceMappingURL=landing-page.css.map */
+

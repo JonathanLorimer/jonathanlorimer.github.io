@@ -1,0 +1,82 @@
+header {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.nav-grid {
+  margin: 2rem;
+  font-size: 2rem;
+  display: grid;
+  grid-template-columns: repeat(4, auto) 13rem;
+  grid-template-rows: repeat(6, 1fr);
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+}
+
+@media screen and (max-width: 380px) {
+  .nav-grid { font-size: 1.6rem; }
+}
+
+.ln {
+  text-align: center;
+  color: #C6BFB3;
+}
+
+.sum-mobile { display: none; }
+.sum-mobile::before { content: "\00a0 "; }
+
+#ln-1 { grid-area: 1 / 1 / 2 / 2; }
+#ln-2 { grid-area: 2 / 1 / 3 / 2; }
+#ln-3 { grid-area: 3 / 1 / 4 / 2; }
+#ln-4 { grid-area: 4 / 1 / 5 / 2; }
+#ln-5 { grid-area: 5 / 1 / 6 / 2; }
+#ln-6 { grid-area: 6 / 1 / 7 / 2; }
+#data-menu {
+  font-size: inherit;
+  display: flex;
+  grid-area: 1 / 2 / 7 / 4;
+}
+
+.data:before { content: "\00a0 "; }
+.data:after { content: "\00a0 "; }
+.data {
+  color: #5C6784
+}
+
+.char:before { content: "\00a0 ";}
+.char:after { content: "\00a0 ";}
+.char {
+  color: #5C6784;
+}
+
+#equals { grid-area: 1 / 4 / 2 / 5; }
+.sum1 { grid-area: 2 / 4 / 3 / 5; }
+.sum2 { grid-area: 3 / 4 / 4 / 5; }
+.home-btn { grid-area: 1 / 5 / 2 / 6; }
+.posts-btn { grid-area: 2 / 5 / 3 / 6; }
+.about-me-btn { grid-area: 3 / 5 / 4 / 6; }
+
+.btn:hover {
+  background: #1D263B;
+  color: #fef5e6;
+  padding-left: .5rem;
+  transition: all 0.2s ease-in;
+}
+
+@media screen and (max-width: 600px) {
+  .ln { display: none; }
+  .sum1 { display: none; }
+  .sum2 { display: none; }
+  .sum-mobile { display: inline; }
+  .nav-grid {
+    display: flex;
+    justify-content: center;
+  }
+  header { width: 100%; }
+  .no-link { display: flex;}
+  .btn:hover { padding-left: 0rem; }
+}
+
+/*# sourceMappingURL=header.css.map */
+

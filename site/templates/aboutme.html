@@ -1,0 +1,22 @@
+{{>site/templates/head.html}}
+<body>
+    {{>site/templates/header.html}}
+    <div id="index" class="aboutme">
+      <section class="bio">
+        <h1 class="title"> About Me </h1>
+        {{{ bio.content}}}
+      </section>
+      <section class="cv">
+        <h1 class="title"> Professional CV </h1>
+        <div class="personal-details">
+          <h2> {{ bio.location }} </h2>
+          <h2> {{{ bio.email }}} </h2>
+        </div>
+        <h2 class="resume-header">Experience</h2>
+        {{>site/templates/experience.html}}
+        <h2 class="resume-header">Education</h2>
+        {{>site/templates/education.html}}
+      </section>
+    </div>
+
+{{>site/templates/footer.html}}

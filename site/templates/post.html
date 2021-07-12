@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+
+{{>site/templates/head.html}}
+<body>
+    {{>site/templates/header.html}}
+
+<div id="index" class="post">
+    <h1 class="title"> {{title}} </h1>
+
+    {{#author}}
+    <h2 class="byline">by {{author}}</h2>
+    {{/author}}
+
+    <div class="date">{{datePretty}}</div>
+
+    <div class="post-tags">
+      <span>Tags: </span>
+      {{#tags}}
+      <span class="post-tag" id="{{.}}">{{.}}</span>
+      {{/tags}}
+    </div>
+
+    <article class="post-content">
+        {{{content}}}
+    </article>
+
+</div>
+
+{{>site/templates/footer.html}}

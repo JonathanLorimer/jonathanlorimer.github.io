@@ -1,0 +1,45 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           jonathanlorimerdev
+version:        0.1.0.0
+synopsis:       Jonathan Lorimer's Personal Website
+description:    jonathanlorimer.dev
+category:       Static-Site
+homepage:       https://github.com/jonathanlorimer/jonathanlorimer.github.io#readme
+bug-reports:    https://github.com/jonathanlorimer/jonathanlorimer.github.io/issues
+author:         Jonathan Lorimer
+maintainer:     jonathan_lorimer@mac.com
+copyright:      2020 Jonathan Lorimer
+license:        BSD3
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/jonathanlorimer/jonathanlorimer.github.io
+
+executable build-site
+  main-is: Main.hs
+  other-modules:
+      Paths_jonathanlorimerdev
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -Wall -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base
+    , containers
+    , lens
+    , lens-aeson
+    , shake
+    , slick
+    , text
+    , time
+    , transformers
+    , unordered-containers
+  default-language: Haskell2010

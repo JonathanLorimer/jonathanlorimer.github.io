@@ -1,0 +1,37 @@
+<ul>
+    {{#experience}}
+        <li class="experience-container">
+
+          <div class="left">
+
+            <section class="employment-details">
+              <h1 class="job-title">{{title}}</h1>
+              <h2 class="company">{{company}}</h2>
+              <div class="dates-container">
+                <span>{{startDate}}</span>
+                <span>-</span>
+                {{#endDate}}
+                <span>{{endDate}}</span>
+                {{/endDate}}
+                {{^endDate}}
+                <span>Current</span>
+                {{/endDate}}
+
+              </div>
+              <div>{{location}}</div>
+            </section>
+            <div class="description">{{{content}}}</div>
+          </div>
+
+          <div class="technologies">
+            <h2 class="stack"> techStack =</h2>
+            <ul class="tech-list">
+              {{#technologies}}
+              <li class="tech-item">{{technology}}</li>
+              {{/technologies}}
+            </ul>
+          </div>
+
+        </li>
+    {{/experience}}
+</ul>

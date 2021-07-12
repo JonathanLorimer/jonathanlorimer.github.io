@@ -1,0 +1,39 @@
+# Haskell
+.stack-work/
+*~
+.shake
+dist
+dist-*
+cabal-dev
+*.o
+*.hi
+*.hie
+*.chi
+*.chs.h
+*.dyn_o
+*.dyn_hi
+.hpc
+.hsenv
+.cabal-sandbox/
+cabal.sandbox.config
+*.prof
+*.aux
+*.hp
+*.eventlog
+.stack-work/
+.HTF/
+.ghc.environment.*
+ghcid.txt
+
+# Web
+**/node_modules
+**/yarn-error.log
+
+# General
+.DS_Store
+
+# Nix
+result/
+
+# Application
+build/

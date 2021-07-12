@@ -1,0 +1,92 @@
+.post-list {
+  padding: 18rem 10rem 10rem;
+}
+@media screen and (max-width: 600px) {
+  .post-list {
+    padding: 9rem 5rem 5rem;
+  }
+}
+
+.post-link {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.7rem;
+}
+.detail-container {
+  display: flex;
+  min-width: 40rem;
+  margin-right: 2rem;
+}
+
+.post-title {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  flex-grow: 0;
+  white-space: nowrap;
+  margin-right: 1rem;
+}
+
+.post-item {
+  background-color: #EEE5D7;
+  font-size: 2rem;
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.post-item:hover {
+  background-color: #DBD4C7;
+  transition: all .2s ease-in;
+}
+
+.post-item:hover .post-title {
+  font-weight: 700;
+}
+
+.tag {
+  background-color: gainsboro;
+  color: #1D263B;
+  border-radius: .5rem;
+  font-size: 1.6rem;
+  padding: .4rem;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+@media screen and (max-width: 768px) {
+  .tag {
+    display: none;
+  }
+}
+
+.tag:last-of-type {
+  margin-right: 0rem;
+}
+
+
+.list-date {
+  font-size: 2rem;
+}
+
+@media screen and (max-width: 500px) {
+  .list-date {
+    display: none;
+  }
+}
+
+/* Tags */
+
+#productivity {
+  background-color: #9c7a84;
+  color: #fef5e6;
+}
+
+#book-review {
+  background-color: #92a34c;
+  color: #fef5e6;
+}
+
+#lambda-calculus {
+  background-color: #FFD9DA;
+  color: #1F211C;
+}
