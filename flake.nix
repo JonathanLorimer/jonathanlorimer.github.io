@@ -1,12 +1,15 @@
 {
   description = "Jonathan Lorimer's personal website";
-  inputs.haskellNix.url = "github:input-output-hk/haskell.nix";
-  inputs.nixpkgs.follows = "haskellNix/nixpkgs-unstable";
-  inputs.flake-utils.url = "github:numtide/flake-utils";
-  outputs = { self, nixpkgs, flake-utils, haskellNix }:
+  inputs = {
+    haskellNix.url = "github:input-output-hk/haskell.nix";
+    nixpkgs.follows = "haskellNix/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+  };
+  outputs = { self, nixpkgs, flake-utils, haskellNix, ... }:
     flake-utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" ] (system:
     let
-      overlays = [ haskellNix.overlay
+      overlays = [
+        haskellNix.overlay
         (final: prev: {
           # This overlay adds our project to pkgs
           jonathanlorimerdev =
@@ -22,7 +25,8 @@
                 haskell-language-server = "1.2.0.0";
               };
             };
-        })
+          }
+        )
       ];
       pkgs = import nixpkgs { inherit system overlays; };
       flake = pkgs.jonathanlorimerdev.flake {};
