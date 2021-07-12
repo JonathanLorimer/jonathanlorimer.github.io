@@ -289,4 +289,4 @@ Lazy evaluation has the benefit of terminating as frequently as **Normal Order**
 
 Thank you to Li-yao Xia for providing feedback, and to monoidmusician for discussing the distinction between Weak Head Normal Form and Head Normal Form with me.
 
-If you would like to comment on this post, the comments section is [here](https://github.com/JonathanLorimer/personal-website-builder/issues/2)
+If you would like to comment on this post, the comments section is [here](https://github.com/JonathanLorimer/jonathanlorimer.github.io/issues/2)
