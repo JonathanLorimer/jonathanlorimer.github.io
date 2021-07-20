@@ -62,15 +62,20 @@ in which one can be absolutely precise." - Edsgar Dijkstra
 ```
 
 Okay, thanks eddy, we can all go home now. All kidding aside, this is obviously
-an insightful quotation and much smarter people than I have pointed to it.
+an insightful quotation and much smarter people than I frequently point to it.
 Unfortunately I have always found it rather unsatisfying. Perhaps because it is
-itself, abstract and vague. I also think that this quotation doesn't quite sit
-well with me is because it seems to provide a teleological definition (its
-purpose) of abstraction rather than an ontological one (what it is in relation
-to other things). I will also try and provide several kinds of definitions to
-help solidify the concept.
+itself, abstract and vague. What doesn't sit well with me is that it seems to
+provide a teleological definition (its purpose) of abstraction rather than an
+ontological one (what it is in relation to other things). I will try and provide
+several different definitions of abstraction that might help you triangulate
+what exactly it means.
 
 ### Rationalist perspective: mathematics
+
+Abstraction is information hiding, OOP abstracts the wrong thing (mutation
+and sharing) - Bartosz Milewksi Category Theory 1.1 8:15
+We want to get rid of unnecessary details - Bartosz Milewksi Category Theory 1.2 2:00
+Abstraction provides new equalities - Bartosz Milewksi Category Theory 1.2 3:00
 
 ### Empiricists perspective: examples in everyday programming
 
