@@ -59,7 +59,7 @@
 }
 .description li::before {
   content: "-";
-  text-indent: -.5rem;
+  padding-right: 6px;
 }
 
 .stack::after { content: "\00a0 "; }
@@ -69,7 +69,10 @@
 }
 
 .tech-item:last-child::after {
-  content: " ] "
+  content: " ] ";
+  display: block;
+  line-height: 30px;
+
 }
 .tech-item:not(:first-child)::before {
   content: ", "
