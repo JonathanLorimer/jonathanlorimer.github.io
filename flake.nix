@@ -1,37 +1,70 @@
 {
   description = "Jonathan Lorimer's personal website";
+
   inputs = {
-    haskellNix.url = "github:input-output-hk/haskell.nix";
-    nixpkgs.follows = "haskellNix/nixpkgs-unstable";
+    # Nix Inputs
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs = { self, nixpkgs, flake-utils, haskellNix, ... }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" ] (system:
+
+  outputs =
+    { self
+    , nixpkgs
+    , pre-commit-hooks
+    , flake-utils
+    }:
+    let utils = flake-utils.lib;
+    in
+    utils.eachDefaultSystem (system:
     let
-      overlays = [
-        haskellNix.overlay
-        (final: prev: {
-          # This overlay adds our project to pkgs
-          jonathanlorimerdev =
-            final.haskell-nix.project' {
-              src = ./.;
-              compiler-nix-name = "ghc8104";
-              # This is used by `nix develop .` to open a shell for use with
-              # `cabal`, `hlint` and `haskell-language-server`
-              shell.tools = {
-                ghcid = {};
-                cabal = "3.4.0.0";
-                hlint = "3.3.1";
-                haskell-language-server = "1.2.0.0";
-              };
-            };
-          }
-        )
-      ];
-      pkgs = import nixpkgs { inherit system overlays; };
-      flake = pkgs.jonathanlorimerdev.flake {};
-    in flake // {
-      # Built by `nix build .`
-      defaultPackage = flake.packages."jonathanlorimerdev:exe:build-site";
+      supportedGHCVersion = "8107";
+      compilerVersion = "ghc${supportedGHCVersion}";
+      pkgs = nixpkgs.legacyPackages.${system};
+      hsPkgs = pkgs.haskell.packages.${compilerVersion}.override {
+        overrides = hfinal: hprev: {
+          jonathanlorimerdev = hfinal.callCabal2nix "jonathanlorimerdev" ./. { };
+        };
+      };
+    in
+    rec {
+      packages = utils.flattenTree
+        { jonathanlorimerdev = hsPkgs.jonathanlorimerdev; };
+
+      # nix flake check
+      checks = {
+        pre-commit-check = pre-commit-hooks.lib.${system}.run {
+          src = ./.;
+          hooks = {
+            nixpkgs-fmt.enable = true;
+            fourmolu.enable = true;
+            cabal-fmt.enable = true;
+          };
+        };
+      };
+
+      # nix develop
+      devShell = hsPkgs.shellFor {
+        inherit (self.checks.${system}.pre-commit-check) shellHook;
+        withHoogle = true;
+        packages = p: [
+          p.jonathanlorimerdev
+        ];
+        buildInputs = with pkgs; [
+          hsPkgs.haskell-language-server
+          haskellPackages.cabal-install
+          haskellPackages.ghcid
+          haskellPackages.fourmolu
+          haskellPackages.cabal-fmt
+          nodePackages.serve
+        ] ++ (builtins.attrValues (import ./scripts.nix { s = pkgs.writeShellScriptBin; }));
+      };
+
+      # nix build
+      defaultPackage = packages.jonathanlorimerdev;
+
+      # nix run
+      apps.build-site = utils.mkApp { name = "build-site"; drv = packages.jonathanlorimerdev; };
+      defaultApp = apps.build-site;
     });
 }

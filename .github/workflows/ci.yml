@@ -26,8 +26,7 @@ jobs:
 
       - name: Build and Run 🔧
         run: |
-          nix build .#jonathanlorimerdev:exe:build-site --verbose
-          result/bin/build-site
+          nix run
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.4
