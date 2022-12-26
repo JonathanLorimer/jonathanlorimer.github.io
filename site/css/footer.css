@@ -3,7 +3,7 @@ footer {
   padding-bottom: .5rem;
 }
 
-.left-sidebar {
+.social-links {
   padding-left: 1rem;
 }
 .ext-link-img {
@@ -19,7 +19,7 @@ footer {
 }
 
 @media screen and (min-width: 1280px) {
-  .left-sidebar {
+  .social-links {
     padding-bottom: 2rem;
     padding-left: 0rem;
   }
