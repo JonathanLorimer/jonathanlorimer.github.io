@@ -7,10 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v2.3.1
+        uses: actions/checkout@v3.2.0
 
       - name: Install Nix ❄️ # This example project is built using npm and outputs the result to the 'build' folder. Replace with the commands required to build your project, or remove this step entirely if your site is pre-built.
-        uses: cachix/install-nix-action@v13
+        uses: cachix/install-nix-action@v18
         with:
           install_url: https://nixos-nix-install-tests.cachix.org/serve/i6laym9jw3wg9mw6ncyrk6gjx4l34vvx/install
           install_options: '--tarball-url-prefix https://nixos-nix-install-tests.cachix.org/serve'
@@ -19,7 +19,7 @@ jobs:
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - name: Link Cachix 🔌
-        uses: cachix/cachix-action@v10
+        uses: cachix/cachix-action@v12
         with:
           name: jonathanlorimer
           authToken: '${{ secrets.CACHIX_API_KEY }}'
@@ -29,7 +29,7 @@ jobs:
           nix run
 
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+        uses: JamesIves/github-pages-deploy-action@4.4.1
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: build # The folder the action should deploy.
