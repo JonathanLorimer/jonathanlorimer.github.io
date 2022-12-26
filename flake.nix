@@ -28,8 +28,6 @@
       };
     in
     rec {
-      packages = utils.flattenTree
-        { jonathanlorimerdev = hsPkgs.jonathanlorimerdev; };
 
       # nix flake check
       checks = {
@@ -61,10 +59,15 @@
       };
 
       # nix build
-      defaultPackage = packages.jonathanlorimerdev;
+      packages = utils.flattenTree {
+        jonathanlorimerdev = hsPkgs.jonathanlorimerdev;
+        default = hsPkgs.jonathanlorimerdev;
+      };
 
       # nix run
-      apps.build-site = utils.mkApp { name = "build-site"; drv = packages.jonathanlorimerdev; };
-      defaultApp = apps.build-site;
+      apps = {
+        build-site = utils.mkApp { name = "build-site"; drv = packages.jonathanlorimerdev; };
+        default = utils.mkApp { name = "build-site"; drv = packages.jonathanlorimerdev; };
+      };
     });
 }

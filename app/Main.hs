@@ -1,10 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 
 import Control.Lens
 import Control.Monad
@@ -38,6 +35,7 @@ siteMeta =
         , githubUser = "jonathanlorimer"
         , linkedInUser = "jonathan-lorimer-dev"
         , twitterUser = "jonathanlorime1"
+        , mastodonUser = "jonathanlorimer"
         }
 
 type SiteM = ReaderT FilePath Action
@@ -64,11 +62,12 @@ data SiteMeta = SiteMeta
     , githubUser :: String
     , linkedInUser :: String
     , twitterUser :: String
+    , mastodonUser :: String
     }
     deriving (Generic, Eq, Ord, Show, ToJSON)
 
 -- | Data for the index page
-data PostsInfo = PostsInfo
+newtype PostsInfo = PostsInfo
     { posts :: [Post]
     }
     deriving (Generic, Show, FromJSON, ToJSON)
@@ -97,7 +96,7 @@ data Bio = Bio
     }
     deriving (Generic, Eq, Show, FromJSON, ToJSON, Binary)
 
-data Technology = Technology {technology :: String}
+newtype Technology = Technology {technology :: String}
     deriving (Generic, Eq, Show, FromJSON, ToJSON, Binary)
 
 data Experience = Experience
@@ -267,7 +266,7 @@ toIsoDate :: UTCTime -> String
 toIsoDate = formatTime defaultTimeLocale (iso8601DateFormat rfc3339)
 
 buildFeed :: [Post] -> SiteM ()
-buildFeed posts = do
+buildFeed feedPosts = do
     outputFolder <- ask
     now <- liftIO getCurrentTime
     let atomData =
@@ -275,7 +274,7 @@ buildFeed posts = do
                 { title = "Jonathan Lorimer"
                 , domain = "https://jonathanlorimer.dev"
                 , author = "Jonathan Lorimer"
-                , posts = mkAtomPost <$> posts
+                , posts = mkAtomPost <$> feedPosts
                 , currentTime = toIsoDate now
                 , atomUrl = "/atom.xml"
                 }

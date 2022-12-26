@@ -1,25 +1,32 @@
-<div class="left-sidebar">
-    {{#githubUser}}
-    <a class="ext-link no-link" href="https://github.com/{{githubUser}}">
-        <img class="ext-link-img" src="/images/github-icon.svg" alt="Github Profile"/>
-    </a>
-    {{/githubUser}}
+<div class="social-links">
+  {{#githubUser}}
+  <a class="ext-link no-link" href="https://github.com/{{githubUser}}">
+    <img class="ext-link-img" src="/images/github-icon.svg" alt="Github Profile" />
+  </a>
+  {{/githubUser}}
 
-    {{#linkedInUser}}
-    <a class="ext-link no-link" href="https://linkedin.com/in/{{linkedInUser}}">
-        <img class="ext-link-img" src="/images/linkedin-icon.svg" alt="LinkedIn Profile"/>
-    </a>
-    {{/linkedInUser}}
+  {{#linkedInUser}}
+  <a class="ext-link no-link" href="https://linkedin.com/in/{{linkedInUser}}">
+    <img class="ext-link-img" src="/images/linkedin-icon.svg" alt="LinkedIn Profile" />
+  </a>
+  {{/linkedInUser}}
 
-    {{#twitterUser}}
-    <a class="ext-link no-link" href="https://twitter.com/{{twitterUser}}">
-        <img class="ext-link-img" src="/images/twitter-icon.svg" alt="Twitter Profile"/>
-    </a>
-    {{/twitterUser}}
+  {{#twitterUser}}
+  <a class="ext-link no-link" href="https://twitter.com/{{twitterUser}}">
+    <img class="ext-link-img" src="/images/twitter-icon.svg" alt="Twitter Profile" />
+  </a>
+  {{/twitterUser}}
+
+  {{#mastodonUser}}
+  <a rel="me" class="ext-link no-link" href="https://fosstodon.org/@{{mastodonUser}}">
+    <img class="ext-link-img" src="/images/mastodon-icon.svg" alt="Mastodon Profile" />
+  </a>
+  {{/mastodonUser}}
 </div>
 <footer>
-    Built with Haskell using <a href="https://github.com/ChrisPenner/slick">slick</a> ❤️
+  Built with Haskell using <a href="https://github.com/ChrisPenner/slick">slick</a> ❤️
 </footer>
 
 </body>
+
 </html>
