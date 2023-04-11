@@ -1,0 +1,38 @@
+- 10/04: Data Types a La Carte
+- 17/04: A Novel Representation of Lists and its Application to the Function "reverse".
+- 24/04: Algebraic graphs with class
+- 01/05: Applicative Programming with Effects
+- 08/05: A lightweight Optimization Technique for Data Types a la Carte
+- 15/05: Church Encoding of Data Types Considered Harmful for Implementations
+- 22/05: Generic datatypes a la carte
+- 29/05: Clowns to the left of me, Jokers to the right: Dissecting data structures
+- 05/06: Composing Monads
+- 12/06: Datatype-Generic Programming
+- 19/06: Effect Handlers in Scope
+- 26/06: Effect handlers in haskell, evidently
+- 03/07: Extensible Effects: An Alternative to Monad Transformers
+- 10/07: Finally Tagless, Partially Evaluated: Tagless Staged Interpreters for Simpler Typed Languages
+- 17/07: Foundations for structured programming with GADTs
+- 24/07: Free Delivery
+- 31/07: Implicit configurations--or, type classes reflect the values of types
+- 07/08: Streams and unique fix points
+- 14/08: Two can keep a secret, if one of them uses Haskell
+- 21/08: Generic views on Data Types
+- 28/08: Generic programming with indexed functors
+- 04/09: The sums of products
+- 11/09: There is No Fork: An Abstraction for Efficient, Concurrent, and Concise Data Access
+- 18/09: The design of a pretty printing library
+- 25/09: Stream Fusion. From Lists to Streams to Nothing at All
+- 02/10: Selective applicative functors
+- 09/10: Profunctor Optics: Modular Data Accessors
+- 16/10: OutsideIn(X) Modular type inference with local assumptions
+- 23/10: Monoids: theme and variations
+- 30/10: Monadic Parser Combinators
+- 04/11: Monad Transformers and Modular Interpreters
+- 13/11: Monad transformers and modular algebraic effects: what binds them together
+- 20/11: Modular type classes
+- 27/11: ML Modules and Haskell Type Classes: A Constructive Comparison
+- 04/12: How to Specify It!: A Guide to Writing Properties of Pure Functions
+- 11/12: Haskell Type Constraints Unleashed
+- 18/12: Ghosts of departed proofs
+- 25/12: Logic and programming languages
