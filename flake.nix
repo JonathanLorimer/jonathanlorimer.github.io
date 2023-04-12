@@ -38,6 +38,7 @@
           haskellPackages.fourmolu
           haskellPackages.cabal-fmt
           nodePackages.serve
+          dig
         ] ++ (builtins.attrValues (import ./scripts.nix { s = pkgs.writeShellScriptBin; }));
       };
 

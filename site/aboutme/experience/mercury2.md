@@ -1,9 +1,8 @@
 ---
 company: Mercury
 location: (Remote) Toronto, Ontario, Canada
-title: Lead Software Engineer (Manager)
-startDate: 2020/04
-endDate: 2022/08
+title: Senior Software Engineer (Individual Contributor)
+startDate: 2023/04
 technologies: [ { technology: "Haskell" }
               , { technology: "Nix" }
               , { technology: "PostgresQL" }
