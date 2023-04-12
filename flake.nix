@@ -3,22 +3,20 @@
 
   inputs = {
     # Nix Inputs
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
     { self
     , nixpkgs
-    , pre-commit-hooks
     , flake-utils
     }:
     let utils = flake-utils.lib;
     in
     utils.eachDefaultSystem (system:
     let
-      supportedGHCVersion = "8107";
+      supportedGHCVersion = "927";
       compilerVersion = "ghc${supportedGHCVersion}";
       pkgs = nixpkgs.legacyPackages.${system};
       hsPkgs = pkgs.haskell.packages.${compilerVersion}.override {
@@ -27,24 +25,9 @@
         };
       };
     in
-    rec {
-
-      # nix flake check
-      checks = {
-        pre-commit-check = pre-commit-hooks.lib.${system}.run {
-          src = ./.;
-          hooks = {
-            nixpkgs-fmt.enable = true;
-            fourmolu.enable = true;
-            cabal-fmt.enable = true;
-          };
-        };
-      };
-
+    {
       # nix develop
       devShell = hsPkgs.shellFor {
-        inherit (self.checks.${system}.pre-commit-check) shellHook;
-        withHoogle = true;
         packages = p: [
           p.jonathanlorimerdev
         ];
@@ -66,8 +49,8 @@
 
       # nix run
       apps = {
-        build-site = utils.mkApp { name = "build-site"; drv = packages.jonathanlorimerdev; };
-        default = utils.mkApp { name = "build-site"; drv = packages.jonathanlorimerdev; };
+        build-site = utils.mkApp { name = "build-site"; drv = self.packages.${system}.jonathanlorimerdev; };
+        default = utils.mkApp { name = "build-site"; drv = self.packages.${system}.jonathanlorimerdev; };
       };
     });
 }
