@@ -8,12 +8,13 @@ import Control.Monad
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
 import Data.Aeson
+import Data.Aeson.KeyMap
 import Data.Aeson.Lens
-import qualified Data.HashMap.Lazy as HML
 import Data.List (sortBy)
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Time
+import Data.Time.Format.ISO8601
 import Development.Shake
 import Development.Shake.Classes
 import Development.Shake.FilePath
@@ -46,9 +47,10 @@ forP' xs f = do
     lift $ forP xs (\x -> runReaderT (f x) env)
 
 withSiteMeta :: Value -> Value
-withSiteMeta (Object obj) = Object $ HML.union obj siteMetaObj
-  where
-    Object siteMetaObj = toJSON siteMeta
+withSiteMeta (Object obj) =
+  case toJSON siteMeta of
+    Object siteMetaObj -> Object $ obj `union` siteMetaObj
+    _                  -> error "only add site meta to objects"
 withSiteMeta _ = error "only add site meta to objects"
 
 {------------------------------------------------
@@ -259,11 +261,8 @@ formatDate humanDate = toIsoDate parsedTime
     parsedTime =
         parseTimeOrError True defaultTimeLocale "%b %e, %Y" humanDate :: UTCTime
 
-rfc3339 :: Maybe String
-rfc3339 = Just "%H:%M:%SZ"
-
 toIsoDate :: UTCTime -> String
-toIsoDate = formatTime defaultTimeLocale (iso8601DateFormat rfc3339)
+toIsoDate = iso8601Show
 
 buildFeed :: [Post] -> SiteM ()
 buildFeed feedPosts = do
