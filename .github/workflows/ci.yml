@@ -15,6 +15,10 @@ jobs:
       - name: Build 🔧
         run: nix run
 
+      - name: Upload 📁
+        uses: actions/upload-pages-artifact
+        with:
+          path: 'build/'
   deploy:
     # Add a dependency to the build job
     needs: build
@@ -35,6 +39,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
-        with:
-          artifact_name: 'build'
 
