@@ -1,5 +1,5 @@
 ---
-title: "Intro to FP Through λ-Calc Part 1. - Motivating Laziness"
+title: "Intro to FP Through λ-Calculus - Motivating Laziness"
 author: Jonathan Lorimer
 date: 31/08/2020
 datePretty: Mar 19, 2020
