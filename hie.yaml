@@ -1,0 +1,5 @@
+
+cradle:
+  cabal:
+    - path: "./app"
+      component: "exe:build-site"
