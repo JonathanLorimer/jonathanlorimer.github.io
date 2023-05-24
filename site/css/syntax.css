@@ -12,6 +12,11 @@ code {
     background-color: #1b2b34;
     color: #d8dee9;
     border-radius: 4px;
+    padding: 0 0.4rem;
+}
+
+pre code {
+  padding: 0;
 }
 
 p code {

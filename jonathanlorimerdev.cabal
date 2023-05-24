@@ -41,5 +41,6 @@ executable build-site
     , text
     , time
     , transformers
+    , pandoc
     , unordered-containers
   default-language: Haskell2010

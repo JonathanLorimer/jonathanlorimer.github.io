@@ -24,6 +24,13 @@ import Development.Shake.Forward
 import GHC.Generics (Generic)
 import Slick
 import System.Environment (lookupEnv)
+import Text.Pandoc (ReaderOptions (..))
+import Text.Pandoc.Options (def)
+import Slick.Pandoc
+import Data.Foldable
+import Text.Pandoc (extensionsFromList)
+import Text.Pandoc (Extension(..))
+import Text.Pandoc (githubMarkdownExtensions)
 
 {------------------------------------------------
                     Config
@@ -146,6 +153,27 @@ data AtomData = AtomData
     deriving (Generic, ToJSON, Eq, Ord, Show)
 
 {------------------------------------------------
+                    Helpers
+------------------------------------------------}
+mdToHTML :: T.Text -> Action Value
+mdToHTML = markdownToHTMLWithOpts markdownOptions defaultHtml5Options
+  where
+    markdownOptions :: ReaderOptions
+    markdownOptions =  def {
+      readerExtensions = fold
+       [ extensionsFromList
+         [ Ext_yaml_metadata_block
+         , Ext_fenced_code_attributes
+         , Ext_auto_identifiers
+         , Ext_footnotes
+         , Ext_footnotes
+         , Ext_link_attributes
+         ]
+       , githubMarkdownExtensions
+       ]
+    }
+
+{------------------------------------------------
                     Builders
 ------------------------------------------------}
 buildExperience :: FilePath -> Action Experience
@@ -153,7 +181,7 @@ buildExperience srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
     liftIO . putStrLn $ "Rebuilding aboutme/experience: " <> srcPath
     experienceContent <- readFile' srcPath
     -- load post content and metadata as JSON blob
-    experienceData <- markdownToHTML . T.pack $ experienceContent
+    experienceData <- mdToHTML . T.pack $ experienceContent
     convert experienceData
 
 buildBio :: FilePath -> Action Bio
@@ -161,7 +189,7 @@ buildBio srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
     liftIO . putStrLn $ "Rebuilding aboutme/bio: " <> srcPath
     bioContent <- readFile' srcPath
     -- load post content and metadata as JSON blob
-    bioData <- markdownToHTML . T.pack $ bioContent
+    bioData <- mdToHTML . T.pack $ bioContent
     convert bioData
 
 buildEducation :: FilePath -> Action Education
@@ -169,7 +197,7 @@ buildEducation srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
     liftIO . putStrLn $ "Rebuilding aboutme/education: " <> srcPath
     eduContent <- readFile' srcPath
     -- load post content and metadata as JSON blob
-    eduData <- markdownToHTML . T.pack $ eduContent
+    eduData <- mdToHTML . T.pack $ eduContent
     convert eduData
 
 buildAboutMe :: SiteM ()
@@ -230,7 +258,7 @@ buildPost srcPath = do
       liftIO . putStrLn $ "Rebuilding post: " <> srcPath
       postContent <- readFile' srcPath
       -- load post content and metadata as JSON blob
-      postData <- markdownToHTML . T.pack $ postContent
+      postData <- mdToHTML . T.pack $ postContent
       let postUrl = T.pack . dropDirectory1 $ srcPath -<.> "html"
           withPostUrl = _Object . at "url" ?~ String postUrl
           withPrettyDate = over (_Object . at "date" . mapped) $

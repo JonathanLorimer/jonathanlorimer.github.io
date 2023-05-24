@@ -42,6 +42,7 @@
   margin-top: 1rem;
   font-size: 1.6rem;
   margin-left: 3rem;
+  line-height: 2.8rem;
   list-style-type: disc;
 }
 
@@ -100,4 +101,8 @@ sup {
   font-size: 1.2rem;
   position: relative;
   top: -0.5rem;
+}
+
+.md-image {
+  width: 100%;
 }
