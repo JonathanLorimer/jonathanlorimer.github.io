@@ -6,9 +6,21 @@ description: "I read and summarised The Purely Functional Software Deployment Mo
 tags: [nix]
 ---
 
+# Introduction
+
+_The Purely Functional Software Deployment Model_[^1] by Eelco Dolstra (herein
+referred to as "the thesis") is often pointed to as a great resource for
+learning about nix, albeit technical and formal. I wanted to read it myself,
+and see if it was as good as people said. I found that the thesis was very
+accessible, remarkably relevant given its age, and that a significant portion
+of the content was philosophical rather than technical. Therefore, my
+aspiration for this blog post is to crystallize some of the insights from the
+thesis into short form content. Hopefully this post will inspire you to go on
+and read the full text, or at least provide an expedient proxy for doing so.
+
+
 # Table of Contents
 
-- [Introduction](#introduction)
 - [Correct Software Deployment](#correct-software-deployment)
     - [Correctness](#correctness)
     - [Software Deployment](#software-deployment)
@@ -22,18 +34,6 @@ tags: [nix]
 - [Nix Principles](#nix-principles)
 - [Topics Not Covered](#topics-not-covered)
 - [Footnotes](#footnotes)
-
-# Introduction
-
-_The Purely Functional Software Deployment Model_[^1] by Eelco Dolstra (herein
-referred to as "the thesis") is often pointed to as a great resource for
-learning about nix, albeit technical and formal. I wanted to read it myself,
-and see if it was as good as people said. I found that the thesis was very
-accessible, remarkably relevant given its age, and that a significant portion
-of the content was philosophical rather than technical. Therefore, my
-aspiration for this blog post is to crystallize some of the insights from the
-thesis into short form content. Hopefully this post will inspire you to go on
-and read the full text, or at least provide an expedient proxy for doing so.
 
 # Correct Software Deployment
 
@@ -539,9 +539,9 @@ work on making the intensional model happen. The main difference is the notion
 of equality. For the extensional model the name (including the hashes) of the
 inputs are all we care about, but you can have an even more granular
 definition, where the actual content of the inputs is hashed. This provides
-greater security guarantees, or optimizing redundant builds, but makes some
-other things harder. The intensional model is called `content-addressed
-derivations` these days and you can [track its progress
+greater security guarantees, facilitates optimizing redundant builds, but also
+makes some other things harder. The intensional model is called
+`content-addressed derivations` these days and you can [track its progress
 today](https://discourse.nixos.org/t/content-addressed-nix-call-for-testers/12881)
 
 ### Binary patching
@@ -556,16 +556,16 @@ section in the thesis is 7.5.
 
 This is mentioned in future work, and it is definitely something that I find
 painful today about nix. Bash scripts are not exactly the paragon of
-correctness. There are however, [attempts provide alternative ways to construct
-builders](https://determinate.systems/posts/nuenv) by way of altering something
-called the "standard environment" (which just provides conveniences for making
-builders and derivations).
+correctness. There are however, [attempts to provide alternative ways to
+construct builders](https://determinate.systems/posts/nuenv) by way of altering
+something called the "standard environment" (which just provides conveniences
+for making builders and derivations).
 
 ### A type system for the nix expression language
 
-This is also brought up in the future work, and there has been lots of
-interest from the community for this. As far as I can tell there are a couple
-attempts at this. The first is [nickel](https://nickel-lang.org/) which seems
+This is also brought up in the future work section, and there has been lots of
+interest in this from the community. As far as I can tell there are have been a
+couple of attempts. The first is [nickel](https://nickel-lang.org/) which seems
 to be marketing itself as a general purpose configuration language for more
 than just nix. The second is [purenix](https://github.com/purenix-org/purenix)
 which uses the Purescript frontend language, and provides a backend that

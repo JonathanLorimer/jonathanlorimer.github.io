@@ -6,10 +6,16 @@ description: "Introduction to Functional Programming Through Lambda Calculus gav
 tags: [lambda-calculus]
 ---
 
+# Introduction
+
+This is the first  in a series of blog posts I am writing, about a book by Greg Michaelson called _An Introduction to Functional Programming Through Lambda Calculus_ (referred to as 'The Book' throughout). Prior to reading this book, I already had a cursory understanding of the lambda calculus, but I wanted to solidify my understanding as well as find connections to my primary area of interest; coding in Haskell. The format of these posts won't be a review of the book, but rather an exposition of the three observations I found most interesting. This particular post looks at evaluation order. Before reading the book I found evaluation order an impenetrable subject, it reminded me of order of operations from grade school math, and most explanations I came across were crucially missing the _why_. I suppose evaluation order is a low-level, procedural mechanism, and those who study it usually approach it as an application of the theory they already understand. I am coming at this subject from the opposite direction, I am an end-user of Haskell with no computer science background, so evaluation order is the first layer of theory beneath the surface of Haskell’s pleasant high level syntax. I hope that a short overview of evaluation order can help us understand why laziness is such a natural choice for Haskell; a language built on top of the lambda calculus.
+
+> N.B. this post assumes basic familiarity with the syntax of lambda calculus [this is not a bad starting point](https://personal.utdallas.edu/~gupta/courses/apl/lambda.pdf)
+
+
 # Table of Contents
 
-- [Introduction](#introduction)
-    - [Attribution](#attribution)
+- [Attribution](#attribution)
 - [Terminology & Termination](#terminology--termination)
     - [Normal Form](#normal-form)
     - [Intermediate Normal Forms](#intermediate-normal-forms)
@@ -21,13 +27,7 @@ tags: [lambda-calculus]
     - [Lazy Evaluation](#lazy-evaluation)
 - [References](#references)
 
-# Introduction
-
-This is the first  in a series of blog posts I am writing, about a book by Greg Michaelson called _An Introduction to Functional Programming Through Lambda Calculus_ (referred to as 'The Book' throughout). Prior to reading this book, I already had a cursory understanding of the lambda calculus, but I wanted to solidify my understanding as well as find connections to my primary area of interest; coding in Haskell. The format of these posts won't be a review of the book, but rather an exposition of the three observations I found most interesting. This particular post looks at evaluation order. Before reading the book I found evaluation order an impenetrable subject, it reminded me of order of operations from grade school math, and most explanations I came across were crucially missing the _why_. I suppose evaluation order is a low-level, procedural mechanism, and those who study it usually approach it as an application of the theory they already understand. I am coming at this subject from the opposite direction, I am an end-user of Haskell with no computer science background, so evaluation order is the first layer of theory beneath the surface of Haskell’s pleasant high level syntax. I hope that a short overview of evaluation order can help us understand why laziness is such a natural choice for Haskell; a language built on top of the lambda calculus.
-
-> N.B. this post assumes basic familiarity with the syntax of lambda calculus [this is not a bad starting point](https://personal.utdallas.edu/~gupta/courses/apl/lambda.pdf)
-
-## Attribution
+# Attribution
 
 The majority of the content that I reference from the book occurs in Chapter 8, between pages 187 and 205 (Michaelson 2011). I will explicitly cite any direct quotations, or references that occur outside of these pages, but pretty much all of the contents of this blogpost comes from Michaelson; to avoid tedious repetition of the citation I am directing you to Chapter 8 now.
 

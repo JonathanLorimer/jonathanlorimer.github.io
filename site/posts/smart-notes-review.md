@@ -6,17 +6,17 @@ description: "A review of How to Take Smart Notes by Sönke Ahrens. The verdict 
 tags: [productivity, book-review]
 ---
 
+# Introduction
+
+  In this review I am going to discuss 3 topics. The first is what I wanted to get out of this text and why I was interested in reading the book in the first place. The second is the actual structure and workflow of a zettelkasten as recommended by the book. The last topic looks at the concepts that I found interesting, and the ones that I struggled with.
+
 # Table of Contents
 
-- [Introduction](#introduction)
 - [My Experience with Note Taking Systems](#my-experience-with-note-taking-systems)
 - [Structure and Workflow of a Zettelkasten](#structure-and-workflow-of-a-zettelkasten)
 - [Discussion of the Book](#discussion-of-the-book)
 - [Conclusion](#conclusion)
 
-# Introduction
-
-  In this review I am going to discuss 3 topics. The first is what I wanted to get out of this text and why I was interested in reading the book in the first place. The second is the actual structure and workflow of a zettelkasten as recommended by the book. The last topic looks at the concepts that I found interesting, and the ones that I struggled with.
 
 # My Experience with Note Taking Systems
 
