@@ -16,9 +16,9 @@ tags: [nix]
 - [Problems With Existing Solutions](#problems-with-existing-solutions)
 - [The Benefits of Nix](#the-benefits-of-nix)
 - [Implementation Details](#implementation-details)
-    - [The Nix Store](#nix-store)
+    - [The Nix Store](#the-nix-store)
     - [Filesystem As Memory](#filesystem-as-memory)
-    - [Pure Functions](#nix-store)
+    - [Purely Functional Model](#purely-functional-model)
 - [Nix Principles](#nix-principles)
 - [Topics Not Covered](#topics-not-covered)
 - [Footnotes](#footnotes)
@@ -453,37 +453,86 @@ pointer. Nix imposes a _pointer discipline_ through its hash-based naming
 schema which allows pointers to be recognizable within components, and the
 pointers are isolated from one another within the nix store.[^25]
 
-## Pure Functions
+## Purely Functional Model
 
-"An important point here is that upgrading only happens by rebuilding the
-component in question and all components that depend on it. We never perform a
-destructive upgrade. Components never change after they have been built—they
-are marked as read-only in the file system. Assuming that the build process for
-a component is deterministic, this means that the hash identifies the contents
-of the components at all times, not only just after it has been built.
-Conversely, the build-time inputs determine the contents of the component.
-Therefore we call this a purely functional model. In purely functional
-programming languages such as Haskell [135], as in mathematics, the result of a
-function call depends exclusively on the definition of the function and on the
-arguments. In Nix, the contents of a component depend exclusively on the build
-inputs. The advantage of a purely functional model is that we obtain strong
-guarantees about components, such as non-interference." pg 21
+There are two main facets of Nix that make it a "purely functional" model for
+software deployment. The first is immutability in the store. The second is
+purity of the build process; the build process admits no side-effects.
 
-"Also, we go to some lengths to ensure that component builders are pure, that
-is, not influenced by outside factors. For example, the builder is called with
-an empty set of environment variables (such as the PATH environment variable,
-which is used by Unix shells to locate programs) to prevent user settings such
-as search paths from reaching tools invoked by the builder. Similarly, at
-runtime on Linux systems, we use a patched dynamic linker that does not search
-in any default locations—so if a dynamic library is not explicitly declared
-with its full path in an executable, the dynamic linker will not find it." pg 23
+Because the nix store is immutable, it means that there are no destructive
+upgrades. Upgrading only happens by rebuilding the component and its
+dependencies. Nix ensures that components never change after they have been
+built by marking them as "read-only".[^26]
+
+There are many measures taken to ensure that the build process for nix is
+hermetic. The environment variables are cleared, which means that `$PATH` is
+empty. Linux systems use a patched dynamic linker that doesn't search in
+default locations. `$HOME` is set to a non-existent folder called
+"/homless-shelter", so no program can use it for dereferencing via pointer
+arithmetic (to use the memory analogy).[^27] Pure builds are important because
+they mean that each build is deterministic; the inputs to a component (or its
+dependencies) determine the output.
+
+The combination of immutable store paths and determinism is powerful. It means
+that the hash identifies the contents of a component _at all times_. Which
+furnishes Nix with strong correctness guarantees.[^28]
 
 # Nix Principles
 
+There were a couple principles mentioned in the thesis, that represent
+guidelines or patterns for using Nix. I thought it was interesting that a
+section like this was included, and also really informative for Nix users
+today.
+
+### Static compositions are good
+
+Dynamic composition, or "late binding", is when a dependency is specified at
+runtime. A composition is when a nix-specified-component is used as the input
+to the build process for another component. An example of late binding would be
+this program that references `foo` dynamically at runtime `execlp("foo",
+args)`. However, if the path is specified at build time (as Nix enforces), then
+this is becomes a static composition. Another way of phrasing this, is that Nix
+will require you to specify `foo` at buildtime, and therefore it enforces
+static compositions.
+
+There is a tradeoff here: dynamic means the ability to upgrade (perhaps fix)
+everything at once, but it also means the ability to break everything at once.
+Nix chooses correctness at the cost of expedience.[^29]
+
+### Static compositions are good. Late compositions are better.
+
+Static composition is obviously expensive, since a component needs to be
+re-built if any of its dependencies (previous compositions) changes, no matter
+how small. Late static composition is a technique where a "wrapper component",
+instead of the program in question, accpets all of the components to be
+composed as inputs and dynamically links them. A famous example in nixpkgs is
+firefox, where things like flashplayer and other firefox plugins are linked in
+the wrapper component, which is really just a shell script that provides the
+plugins via environment variables. Nix's hermetic environments make this
+possible without the risk of interference. Since the wrapper component can be
+generated very quickly, changing a small part of the composition remains cheap.[^30]
+
+> You can still see artefacts of the "wrapping" approach in nixpkgs today; the
+> wrapped firefox is provided under the name `firefox` but the unwrapped
+> version still exists as [firefox-unwrapped](https://search.nixos.org/packages?channel=unstable&show=firefox-unwrapped&from=0&size=50&sort=relevance&type=packages&query=firefox)
+
+### User environments are not a composition mechanism
+
+User environments can be used as a composition mechanism. This is an abuse of
+user environments, and should be avoided at all costs. Dependencies should be
+expressed through Nix as inputs. The abuse of user environments is one of the
+causes of trouble within existing software deployment systems.[^31]
+
+### Fine-grained components are better than coarse-grained components
+
+Fine grained components are more compositional, they offer better re-use, and
+they help to mitigate unnecessarily large closures.[^32]
+
 # Topics Not Covered
 
-There were many topics that were interesting in the thesis, but were too
-technical to write about. I will list them here for the interested reader:
+There were many topics that were interesting in the thesis, but were either too
+technical to write about or there wasn't enough written about them at that
+point in Nix's history. I will list them here for the interested reader:
 
 ### Intensional vs extensional model
 
@@ -668,3 +717,25 @@ reached critical adoption.
 [^23]: Dolstra, "The Purely Functional Software Deployment Model," 53-54.
 [^24]: Dolstra, "The Purely Functional Software Deployment Model," 54.
 [^25]: Dolstra, "The Purely Functional Software Deployment Model," 57-58.
+[^26]: Dolstra, "The Purely Functional Software Deployment Model," 21
+[^27]: Dolstra, "The Purely Functional Software Deployment Model," 23
+[^28]: Dolstra, "The Purely Functional Software Deployment Model," 21
+
+    "An important point here is that upgrading only happens by rebuilding the
+    component in question and all components that depend on it. We never
+    perform a destructive upgrade. Components never change after they have been
+    built—they are marked as read-only in the file system. Assuming that the
+    build process for a component is deterministic, this means that the hash
+    identifies the contents of the components at all times, not only just after
+    it has been built. Conversely, the build-time inputs determine the contents
+    of the component. Therefore we call this a purely functional model. In
+    purely functional programming languages such as Haskell [135], as in
+    mathematics, the result of a function call depends exclusively on the
+    definition of the function and on the arguments. In Nix, the contents of a
+    component depend exclusively on the build inputs. The advantage of a purely
+    functional model is that we obtain strong guarantees about components, such
+    as non-interference."
+[^29]: Dolstra, "The Purely Functional Software Deployment Model," 170-171
+[^30]: Dolstra, "The Purely Functional Software Deployment Model," 171-172
+[^31]: Dolstra, "The Purely Functional Software Deployment Model," 172
+[^32]: Dolstra, "The Purely Functional Software Deployment Model," 174
