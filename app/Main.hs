@@ -2,6 +2,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TypeApplications #-}
 
 import Control.Lens
 import Control.Monad
@@ -22,6 +24,13 @@ import Development.Shake.Forward
 import GHC.Generics (Generic)
 import Slick
 import System.Environment (lookupEnv)
+import Text.Pandoc (ReaderOptions (..))
+import Text.Pandoc.Options (def)
+import Slick.Pandoc
+import Data.Foldable
+import Text.Pandoc (extensionsFromList)
+import Text.Pandoc (Extension(..))
+import Text.Pandoc (githubMarkdownExtensions)
 
 {------------------------------------------------
                     Config
@@ -81,7 +90,6 @@ data Post = Post
     , content :: String
     , url :: String
     , date :: String
-    , datePretty :: String
     , description :: String
     , tags :: [Tag]
     , image :: Maybe String
@@ -145,6 +153,28 @@ data AtomData = AtomData
     deriving (Generic, ToJSON, Eq, Ord, Show)
 
 {------------------------------------------------
+                    Helpers
+------------------------------------------------}
+mdToHTML :: T.Text -> Action Value
+mdToHTML = markdownToHTMLWithOpts markdownOptions defaultHtml5Options
+  where
+    markdownOptions :: ReaderOptions
+    markdownOptions =  def {
+      readerExtensions = fold
+       [ extensionsFromList
+         [ Ext_yaml_metadata_block
+         , Ext_fenced_code_attributes
+         , Ext_auto_identifiers
+         , Ext_footnotes
+         , Ext_footnotes
+         , Ext_link_attributes
+         , Ext_pipe_tables
+         ]
+       , githubMarkdownExtensions
+       ]
+    }
+
+{------------------------------------------------
                     Builders
 ------------------------------------------------}
 buildExperience :: FilePath -> Action Experience
@@ -152,7 +182,7 @@ buildExperience srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
     liftIO . putStrLn $ "Rebuilding aboutme/experience: " <> srcPath
     experienceContent <- readFile' srcPath
     -- load post content and metadata as JSON blob
-    experienceData <- markdownToHTML . T.pack $ experienceContent
+    experienceData <- mdToHTML . T.pack $ experienceContent
     convert experienceData
 
 buildBio :: FilePath -> Action Bio
@@ -160,7 +190,7 @@ buildBio srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
     liftIO . putStrLn $ "Rebuilding aboutme/bio: " <> srcPath
     bioContent <- readFile' srcPath
     -- load post content and metadata as JSON blob
-    bioData <- markdownToHTML . T.pack $ bioContent
+    bioData <- mdToHTML . T.pack $ bioContent
     convert bioData
 
 buildEducation :: FilePath -> Action Education
@@ -168,7 +198,7 @@ buildEducation srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
     liftIO . putStrLn $ "Rebuilding aboutme/education: " <> srcPath
     eduContent <- readFile' srcPath
     -- load post content and metadata as JSON blob
-    eduData <- markdownToHTML . T.pack $ eduContent
+    eduData <- mdToHTML . T.pack $ eduContent
     convert eduData
 
 buildAboutMe :: SiteM ()
@@ -226,17 +256,23 @@ buildPost :: FilePath -> SiteM Post
 buildPost srcPath = do
     outputFolder <- ask
     lift . cacheAction ("build" :: T.Text, srcPath) $ do
-        liftIO . putStrLn $ "Rebuilding post: " <> srcPath
-        postContent <- readFile' srcPath
-        -- load post content and metadata as JSON blob
-        postData <- markdownToHTML . T.pack $ postContent
-        let postUrl = T.pack . dropDirectory1 $ srcPath -<.> "html"
-            withPostUrl = _Object . at "url" ?~ String postUrl
-        -- Add additional metadata we've been able to compute
-        let fullPostData = withSiteMeta . withPostUrl $ postData
-        template <- compileTemplate' "site/templates/post.html"
-        writeFile' (outputFolder </> T.unpack postUrl) . T.unpack $ substitute template fullPostData
-        convert fullPostData
+      liftIO . putStrLn $ "Rebuilding post: " <> srcPath
+      postContent <- readFile' srcPath
+      -- load post content and metadata as JSON blob
+      postData <- mdToHTML . T.pack $ postContent
+      let postUrl = T.pack . dropDirectory1 $ srcPath -<.> "html"
+          withPostUrl = _Object . at "url" ?~ String postUrl
+          withPrettyDate = over (_Object . at "date" . mapped) $
+            \case
+              String s -> String . T.pack . formatDatePretty . T.unpack $ s
+              x -> x
+      -- Add additional metadata we've been able to compute
+      let fullPostData = withSiteMeta . withPostUrl $ postData
+      template <- compileTemplate' "site/templates/post.html"
+      writeFile' (outputFolder </> T.unpack postUrl) . T.unpack
+        $ substitute template . withPrettyDate
+        $ fullPostData
+      convert fullPostData
 
 -- | Copy all static files from the listed folders to their destination
 copyStaticFiles :: SiteM ()
@@ -255,11 +291,14 @@ copyStaticFiles = do
             forP filepaths $ \filepath ->
                 copyFileChanged ("site" </> filepath) (outputFolder </> filepath)
 
-formatDate :: String -> String
-formatDate humanDate = toIsoDate parsedTime
-  where
-    parsedTime =
-        parseTimeOrError True defaultTimeLocale "%b %e, %Y" humanDate :: UTCTime
+parsedTime :: (ParseTime t, FormatTime t) => String -> t
+parsedTime = parseTimeOrError True defaultTimeLocale "%Y/%m/%d"
+
+formatDateIso :: String -> String
+formatDateIso = toIsoDate . parsedTime
+
+formatDatePretty :: String -> String
+formatDatePretty = formatTime defaultTimeLocale "%b %e, %Y" . parsedTime @Day
 
 toIsoDate :: UTCTime -> String
 toIsoDate = iso8601Show
@@ -282,7 +321,7 @@ buildFeed feedPosts = do
         writeFile' (outputFolder </> "atom.xml") . T.unpack $ substitute atomTempl (toJSON atomData)
 
 mkAtomPost :: Post -> Post
-mkAtomPost p = p{date = formatDate $ datePretty p}
+mkAtomPost p = p { date = formatDateIso $ date p }
 
 buildCNAME :: SiteM ()
 buildCNAME =

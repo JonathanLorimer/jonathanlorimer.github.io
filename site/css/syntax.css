@@ -1,7 +1,7 @@
 pre {
     font-family: 'Iosevka', sans-serif ;
     background-color: #1b2b34;
-    padding: 0.2rem 1.6rem 1.6rem;
+    padding: 1.6rem 1.6rem;
     margin: 3rem 0rem;
     font-size: 1.6rem;
     border-radius: 4px;
@@ -11,8 +11,12 @@ code {
     font-family: 'Iosevka', sans-serif ;
     background-color: #1b2b34;
     color: #d8dee9;
-    padding: 0.1rem 0.3rem;
     border-radius: 4px;
+    padding: 0 0.4rem;
+}
+
+pre code {
+  padding: 0;
 }
 
 p code {
@@ -37,8 +41,34 @@ p code {
 /* AlertTok */
 .sourceCode .al { color: #EC5f67; font-weight: bold; }
 /* FunctionTok */
-.sourceCode .fu { color: #333; }
+.sourceCode .fu { color: #7cafcb; }
 /* RegionMarkerTok */
 .sourceCode .re { color: red }
 /* ErrorTok */
 .sourceCode .er { color: #EC5f67; font-weight: bold; }
+
+pre.numberSource {
+  counter-reset: source-line;
+}
+
+pre.numberSource code > span {
+  position: relative
+}
+
+pre.numberSource code span a {
+  display: inline-block;
+  height: 100%;
+  width: 3rem;
+  margin-right: 2rem;
+  text-align: right;
+}
+
+pre.numberSource code span a::before {
+  content: counter(source-line);
+  counter-increment: source-line;
+  text-align: left;
+  vertical-align: baseline;
+  border: none;
+  cursor: pointer;
+  color: #d8dee9;
+}

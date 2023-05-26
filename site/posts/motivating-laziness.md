@@ -1,8 +1,7 @@
 ---
 title: "Intro to FP Through λ-Calculus - Motivating Laziness"
 author: Jonathan Lorimer
-date: 31/08/2020
-datePretty: Mar 19, 2020
+date: 2020/08/31
 description: "Introduction to Functional Programming Through Lambda Calculus gave a thorough explanation of evaluation in lambda calculus, I found this helped motivate a better understanding of evaluation in haskell!"
 tags: [lambda-calculus]
 ---
@@ -37,32 +36,29 @@ The majority of the content that I reference from the book occurs in Chapter 8, 
 ## Normal Form
 
 **Normal form** is the description of a λ-expression which cannot be β-reduced any further. This means that all external and internal function applications are reduced
-```haskell
 
-1. (λx.y.z.xy) (λa.a) (λb.c.b) =>
-2. (λy.z.(λa.a) y) (λb.c.b) =>
-3. λz.(λa.a)(λb.c.b) =>
-4. λz.b.c.b
-
+```{.haskell .numberLines}
+(λx.y.z.xy) (λa.a) (λb.c.b) =>
+(λy.z.(λa.a) y) (λb.c.b) =>
+(λz.(λa.a)(λb.c.b) =>
+λz.b.c.b
 ```
 
 lines 1-3, in this first example, represent the reduction of external function applications, while line 4 represents the result of an internal function application, because the reduction occurs inside the function body. The reduction of internal applications is important because some expressions that would reduce to the same normal form appear different when internal applications are not reduced. For example, in the code block below, at line 2 the λ-expression looks different from the λ-expression at line 3 from before, however it is clear at the end of reduction that both λ-expressions are the same.
 
-```haskell
-
-1. (λy.z.b.yb) (λx.c.x) =>
-2. λz.b.(λx.c.x)b =>
-3. λz.b.c.b
-
+```{.haskell .numberLines}
+(λy.z.b.yb) (λx.c.x) =>
+λz.b.(λx.c.x)b =>
+λz.b.c.b
 ```
+
 This raises an important point, by the Church-Rosser theorem, all normal forms are unique. Different λ-expressions may converge on normal forms. The Church-Rosser theorem says that if λ-expression `A` can be λ-converted (or λ-abstracted) to `B` (i.e. replace a concrete value with a bound variable through λ-abstraction and then apply that function to the concrete value) then both `A` and `B` reduce to normal form `C` (Turner 2004:189). Below is an example of λ-abstraction, given the name “abstraction” because we are abstracting out the variable `c` and thus converting a more normalized expression to one with an additional lambda.
 
-```haskell
-
-1. λa.x.x(λb.b) => λ-abstraction
-2. (λc.a.x.xc)(λb.b)
-
+```{.haskell .numberLines}
+λa.x.x(λb.b) => λ-abstraction
+(λc.a.x.xc)(λb.b)
 ```
+
 A term is said to be **Normalizing** when it has a normal form but has not yet been reduced to normal form. Normal form is important in lambda calculus because it is effectively how computation is carried out, the reduction of a normalizing term shares a parallel with elimination rules in formal logic, or the evaluation of an arithmetic phrase.
 
 
@@ -70,78 +66,73 @@ A term is said to be **Normalizing** when it has a normal form but has not yet b
 
 There are two intermediate normal forms. The first is **Weak Head Normal Form** (WHNF), this is a λ-expression whose body contains a other λ-expressions that can be applied further (an unevaluated function application is formally referred to as a **Redex**). Line 1 in the following example is _NOT_ in WHNF because the leftmost outermost λ-expression is itself a **Redex**, but once the last external function application has been applied (line 3) the expression is in WHNF. A good indication that you are at least in WHNF (using the syntax that I have chosen) is that there are no brackets around the leftmost λ-abstraction. This indicates that there are no external **Redexes**, and all that is left to evaluate is the function body, where a function body is defined as such `λ<bound-variable>.<function-body>`. The next reduction (line 4) happens "under the lambda" in the function body, and now we are in our second intermediate normal form: **Head Normal Form** (HNF). The definition of HNF is that there are no remaining external _OR_ internal redexes, in line 4 `y((λz.z)((λa.a)(λb.b)))` is not considered a redex because the bound variable y is preventing β-reduction. We can, however, continue evaluting the argument expression. For reference, line 4 the bound variable `y` is the function expression, and `((λz.z)((λa.a)(λb.b)))` is the argument expression. We evaluate the argument expression in lines 4 through 6, until we reach **Normal Form**(NF), at which point every λ-expression that can be evaluated has been evaluated. As a re-cap: line 1 and 2 is an external redex and therefore not in any intermediate normal form. Line 3 is the only line that is in WHNF but not in HNF, line 4 and 5 are in HNF but not NF, and line 6 is in NF (it is also technically in HNF and WHNF).To put it more succinctly: WHNF is a superset of HNF, which is a superset of NF.
 
-```haskell
-
-1. (λv.x.y.(xy)(xv))((λa.a)(λb.b))(λz.z) =>
-2. (λv.x.y.(xy)(x((λa.a))))(λz.z) =>
-3. λy.((λz.z)y)((λz.z)((λa.a)(λb.b))) =>
-4. λy.y((λz.z)((λa.a)(λb.b))) =>
-5. λy.y((λa.a)(λb.b)) =>
-6. λy.y(λb.b)
-
+```{.haskell .numberLines}
+(λv.x.y.(xy)(xv))((λa.a)(λb.b))(λz.z) =>
+(λv.x.y.(xy)(x((λa.a))))(λz.z) =>
+λy.((λz.z)y)((λz.z)((λa.a)(λb.b))) =>
+λy.y((λz.z)((λa.a)(λb.b))) =>
+λy.y((λa.a)(λb.b)) =>
+λy.y(λb.b)
 ```
+
 ## Reduction Orders
 
 From here, things get slightly more complicated, but also more interesting. **Normal Order** (NO) reduction evaluates the leftmost redex by passing the argument _unevaluated_, while **Applicative Order** (AO) evaluates that argument that is being passed. One can already imagine that AO evaluation is more efficient (in the sense of fewer reduction steps); rather than passing around unevaluated lambda terms, why not evaluate them once and then substitute them in a more reduced form? AO evaluation also has a drawback of eagerly reducing a λ-expression, what if this expression is unused? Or worse, what if it never terminates? To summarize the distinction between the two evaluation orders, NO reduction has the benefit of terminating more frequently than AO evaluation, but at the cost of a potentially more expensive reduction process. To clarify, all λ-expressions that terminate upon AO reduction will also terminate upon NO reduction, but not necessarily the other way around. Below are two examples of the differences between AO and NO reduction, the first highlights the inefficiency of NO, while the second illustrates non-termination of AO.
 
-```haskell
-
+```{.haskell .numberLines}
 -- Inefficiency of Normal Order Reduction
 
 -- Normal Order Reduction
-1. (λx.xx)((λa.b.c.c)(λs.s)(λt.t)) =>
-2. ((λa.b.c.c)(λs.s)(λt.t))((λa.b.c.c)(λs.s)(λt.t)) =>
-3. ((λb.c.c)(λt.t))((λa.b.c.c)(λs.s)(λt.t)) =>
-4. (λc.c)((λa.b.c.c)(λs.s)(λt.t)) =>
-5. (λc.c)((λb.c.c)(λt.t)) =>
-6. (λc.c)(λc.c) =>
-7. λc.c
+(λx.xx)((λa.b.c.c)(λs.s)(λt.t)) =>
+((λa.b.c.c)(λs.s)(λt.t))((λa.b.c.c)(λs.s)(λt.t)) =>
+((λb.c.c)(λt.t))((λa.b.c.c)(λs.s)(λt.t)) =>
+(λc.c)((λa.b.c.c)(λs.s)(λt.t)) =>
+(λc.c)((λb.c.c)(λt.t)) =>
+(λc.c)(λc.c) =>
+λc.c
 ------------------------------------------------------
 -- Applicative Order Reduction
-1. (λx.xx)((λa.b.c.c)(λs.s)(λt.t)) =>
-2. (λx.xx)((λb.c.c)(λt.t)) =>
-3. (λx.xx)(λc.c) =>
-4. (λc.c)(λc.c) =>
-5. λc.c
-
+(λx.xx)((λa.b.c.c)(λs.s)(λt.t)) =>
+(λx.xx)((λb.c.c)(λt.t)) =>
+(λx.xx)(λc.c) =>
+(λc.c)(λc.c) =>
+λc.c
 ```
 
-```haskell
-
+```{.haskell .numberLines}
 -- Non-Termination of Applicative Order Reduction
 
 -- Normal Order Reduction
-1. (λf.(λs.f(s s))(λs.f(s s)))(λx.y.y) =>
-2. (λs.(λx.y.y)(s s))(λs.(λx.y.y)(s s))) =>
-3. (λx.y.y)((λs.(λx.y.y)(s s))(λs.(λx.y.y)(s s))) =>
-4. (λy.y)
+(λf.(λs.f(s s))(λs.f(s s)))(λx.y.y) =>
+(λs.(λx.y.y)(s s))(λs.(λx.y.y)(s s))) =>
+(λx.y.y)((λs.(λx.y.y)(s s))(λs.(λx.y.y)(s s))) =>
+(λy.y)
 -----------------------------------------------------
 -- Applicative Order Reduction
-1. (λf.(λs.f(s s))(λs.f(s s)))(λx.y.y) =>
+(λf.(λs.f(s s))(λs.f(s s)))(λx.y.y) =>
 
 -- λx.y.y is already in NF, so we procede
 
-2. (λs.(λx.y.y)(s s)) (λs.(λx.y.y)(s s)) =>
+(λs.(λx.y.y)(s s)) (λs.(λx.y.y)(s s)) =>
 
 -- The argument λs.(λx.y.y)(s s) is in WHNF so we procede
 
-3. (λx.y.y)
+(λx.y.y)
     ((λs.(λx.y.y)(s s)) (λs.(λx.y.y)(s s))) =>
 
 -- Ahh! the argument (λs.(λx.y.y)(s s))(λs.(λx.y.y)(s s)) can be reduced
 
-4. (λx.y.y)
+(λx.y.y)
+ ((λx.y.y)
+  ((λs.(λx.y.y)(s s)) (λs.(λx.y.y)(s s)))) =>
+(λx.y.y)
+  ((λx.y.y)
     ((λx.y.y)
-      ((λs.(λx.y.y)(s s)) (λs.(λx.y.y)(s s)))) =>
-5. (λx.y.y)
-    ((λx.y.y)
-      ((λx.y.y)
-        ((λs.(λx.y.y)(s s)) (λs.(λx.y.y)(s s))))) =>
-6. (λx.y.y)
-    ((λx.y.y)
-      ...
-        ((λs.(λx.y.y)(s s)) (λs.(λx.y.y)(s s)))))
-
+      ((λs.(λx.y.y)(s s)) (λs.(λx.y.y)(s s))))) =>
+(λx.y.y)
+  ((λx.y.y)
+    ...
+      ((λs.(λx.y.y)(s s)) (λs.(λx.y.y)(s s)))))
 ```
 
 The non-terminating example is a little bit complex, so let's dig in. There are two parts `(λf.(λs.f(s s))(λs.f(s s)))` and `(λx.y.y)`. The first λ-expression is a common combinator known as a fixpoint, it is a higher order function, that represents a general approach to recursion in the simply typed lambda calculus (basic self application `(λs.ss)λs.ss` doesn't typecheck). It is not important to understand the fixpoint combinator now, but what is important is to recognize that this kind of recursion is impossible in applicative order evaluation, because the generative self application is passed as an argument, and therefore evaluated immediately. Immediate evaluation causes us to apply our λ-expression to itself infinitely with no opportunity for the logic to fork to a base case. The second λ-expression (`λx.y.y`) was chosen trivially, because it terminates instantly; I didn't want to have to think too hard about a recursive example that terminates in normal order evaluation. However, this function could have been any function at all, and the applicative order evaluation would never terminate.
@@ -169,32 +160,30 @@ Another important feature of NO evaluation (which is delayed relative to AO eval
 
 For those of you who are familiar with Haskell, [monoidmusician](https://github.com/monoidmusician) wrote out a tiny DSL and some predicates to help understand the definitions of normal forms and their distinctions:
 
-```haskell
-
+```{.haskell .numberLines}
 data LC = Abs LC | App LC LC | Var Int
 
 isRedex :: LC -> Bool
 isRedex (App (Abs f) a) = True
-isRedex _               = False
+isRedex _ = False
 
 isNF :: LC -> Bool
 isNF t | isRedex t = False
-isNF (Abs t)       = isNF t
-isNF (App f a)     = isNF f && isNF a
-isNF _             = True
+isNF (Abs t) = isNF t
+isNF (App f a) = isNF f && isNF a
+isNF _ = True
 
 isHNF :: LC -> Bool
 isHNF t | isRedex t = False
-isHNF (Abs t)       = isHNF t -- this is the difference between WHNF and HNF!
-isHNF (App f a)     = isHNF f
-isHNF _             = True
+isHNF (Abs t) = isHNF t -- this is the difference between WHNF and HNF!
+isHNF (App f a) = isHNF f
+isHNF _ = True
 
 isWHNF :: LC -> Bool
 isWHNF t | isRedex t = False
-isWHNF (Abs t)       = True
-isWHNF (App f a)     = isWHNF f
-isWHNF _             = True
-
+isWHNF (Abs t) = True
+isWHNF (App f a) = isWHNF f
+isWHNF _ = True
 ```
 
 # A Lazy Solution
@@ -205,54 +194,48 @@ There are two solutions to the problem presented by the asymmetric benefits of t
 
 A thunk is a method for delaying evaluation by wrapping an expression in an extra layer of λ-abstraction. Thunks require more than just changing the definition, the consumers of those thunked values need to change the way they handle data; the consumer must now explicitly evaluate the expressions. The simplest example of a thunk would be this:
 
-```haskell
-
-1. (λa.a)(λb.b)        -- This would be immediately evaluated
-2. λdummy.(λa.a)(λb.b) -- the evaluation of the internal redex is deffered because we are in WHNF now
-
+```{.haskell .numberLines}
+(λa.a)(λb.b)        -- This would be immediately evaluated
+λdummy.(λa.a)(λb.b) -- the evaluation of the internal redex is deffered because we are in WHNF now
 ```
 
 Let's see how this can help us avoid non-termination in the **Applicative Order** evaluation example used in the previous section. We should note two things here
 1. I use the name `dummy` to indicate a thunk; basically I don't intend on ever using this variable
 2. We are evaluating arguments up to WHNF, otherwise we would still need to evaluate the internal redex and regress into non-termination
 
-```haskell
-
+```{.haskell .numberLines}
 -- For reference this is the λ-expression before the use of thunks
 -- (λf.(λs.f(s s))(λs.f(s s)))(λx.y.y)
 
-1. (λf.(λs.f(λdummy.(s s))(λs.f(λdummy.(s s))))(λx.y.y) =>
-2. (λs.(λx.y.y)(λdummy.(s s))(λs.(λx.y.y)(λdummy.(s s)))) =>
-3. (λx.y.y)(λdummy.((λs.(λx.y.y)(λdummy.(s s)))(λs.(λx.y.y)(λdummy.(s s))))) =>
-4. λy.y
-
+(λf.(λs.f(λdummy.(s s))(λs.f(λdummy.(s s))))(λx.y.y) =>
+(λs.(λx.y.y)(λdummy.(s s))(λs.(λx.y.y)(λdummy.(s s)))) =>
+(λx.y.y)(λdummy.((λs.(λx.y.y)(λdummy.(s s)))(λs.(λx.y.y)(λdummy.(s s))))) =>
+λy.y
 ```
 
 Because the `λdummy` lambda abstraction is in the way, the argument to `λx.y.y` is not evaluated any further, and the entire λ-expression terminates. Let's look at a slightly different example to see how the function we pass to the higher-order recursive function `(λs.f(λdummy.(s s))(λs.f(λdummy.(s s))))` must now choose to explicitly evaluate the thunks. In the first example below I substitute `λx.y.y` for `λx.y.x` a λ-expression that does not terminate, even under **Normal Order** evaluation, when the recursive function is applied to it. However, with the extra layer of thunks, we safely reach a **Weak Head Normal Form**. This is because the function `λx.y.x` does not explicitly evaluate the recursive function. Below the dashed line we can see what happens when we use a function that explicitly evaluates the thunk, `λx.y.x <λ-expr>`, which applies the value `<λ-expr>` (a stand in for any λ-term) to the recursive function to keep it recursing.
 
-```haskell
-
-1. (λf.(λs.f(λdummy.(s s)))(λs.f(λdummy.(s s))))(λx.y.x) =>
-2. (λs.(λx.y.x)(λdummy.(s s)))(λs.(λx.y.x)(λdummy.(s s))) =>
-3. (λx.y.x)(λdummy.((λs.(λx.y.x)(λdummy.(s s)))(λs.(λx.y.x)(λdummy.(s s))))) =>
-4. λy.(λdummy.((λs.(λx.y.x)(λdummy.(s s)))(λs.(λx.y.x)(λdummy.(s s))))) =>
+```{.haskell .numberLines}
+(λf.(λs.f(λdummy.(s s)))(λs.f(λdummy.(s s))))(λx.y.x) =>
+(λs.(λx.y.x)(λdummy.(s s)))(λs.(λx.y.x)(λdummy.(s s))) =>
+(λx.y.x)(λdummy.((λs.(λx.y.x)(λdummy.(s s)))(λs.(λx.y.x)(λdummy.(s s))))) =>
+λy.(λdummy.((λs.(λx.y.x)(λdummy.(s s)))(λs.(λx.y.x)(λdummy.(s s))))) =>
 -------------------------------------------------------------------------------------------------------
 
 -- Instead of <λ-expr> I will use the identity function λz.z
-1. (λf.(λs.f(λdummy.(s s)))(λs.f(λdummy.(s s))))(λx.y.x(λz.z)) =>
-2. (λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s))) =>
-3. (λx.y.x(λz.z))(λdummy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s))))) =>
+(λf.(λs.f(λdummy.(s s)))(λs.f(λdummy.(s s))))(λx.y.x(λz.z)) =>
+(λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s))) =>
+(λx.y.x(λz.z))(λdummy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s))))) =>
 
 -- Now that we have the extra λz.z on the outside, evaluation can continue
-4. λy.(λdummy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s)))))(λz.z) =>
-5. λy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s)))) =>
-6. λy.((λx.y.x(λz.z))(λdummy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s)))))) =>
-7. λy.(y.(λdummy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s)))))(λz.z)) =>
-8. λy.(y.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s))))) =>
+λy.(λdummy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s)))))(λz.z) =>
+λy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s)))) =>
+λy.((λx.y.x(λz.z))(λdummy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s)))))) =>
+λy.(y.(λdummy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s)))))(λz.z)) =>
+λy.(y.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s))))) =>
 ...
-n. λy.(y.(y.(λdummy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s)))))(λz.z)))
+λy.(y.(y.(λdummy.((λs.(λx.y.x(λz.z))(λdummy.(s s)))(λs.(λx.y.x(λz.z))(λdummy.(s s)))))(λz.z)))
 ...
-
 ```
 
 We can see that the thunk style does not prevent non-termination generally, but allows us to evaluate some λ-expressions that would not normally terminate under **Applicative Order** evaluation. Lazy Evaluation accomplishes the same thing, but through and entirely different evaluation strategy.
@@ -261,21 +244,19 @@ We can see that the thunk style does not prevent non-termination generally, but 
 
 Lazy Evaluation only evaluates a λ-expression when it is in the function position ie. `<function position> <argument position>`. The crux of lazy evaluation is that it requires that we keep a reference to λ-expressions that have been substituted for the same bound variables, and then once one of those expressions is evaluated, that value is substituted for the rest. I will use the notation `1(λx.x)` to index λ-expressions, λ-expressions with the same index have been substituted under the same bound variable and can be replaced by a normal form once any instance has been evaluated.
 
-```haskell
-
-1. (λx.xx)((λa.b.c.c)(λs.s)(λt.t)) =>
-2. (1(λa.b.c.c)(λs.s)(λt.t)1(λa.b.c.c)(λs.s)(λt.t)) =>
+```{.haskell .numberLines startFrom="100"}
+(λx.xx)((λa.b.c.c)(λs.s)(λt.t)) =>
+(1(λa.b.c.c)(λs.s)(λt.t)1(λa.b.c.c)(λs.s)(λt.t)) =>
 -- We evalute the λ-expression in function position
 
-3. (1(λb.c.c)(λt.t)1(λa.b.c.c)(λs.s)(λt.t)) =>
-4. (1(λc.c)1(λa.b.c.c)(λs.s)(λt.t)) =>
-5. (1(λc.c)1(λa.b.c.c)(λs.s)(λt.t)) =>
+(1(λb.c.c)(λt.t)1(λa.b.c.c)(λs.s)(λt.t)) =>
+(1(λc.c)1(λa.b.c.c)(λs.s)(λt.t)) =>
+(1(λc.c)1(λa.b.c.c)(λs.s)(λt.t)) =>
 -- Now that the first λ-expr is fully evaluated we substitute it for all
 -- expressions with the same index
 
-6. 1(λc.c)1(λc.c) =>
-7. λc.c
-
+1(λc.c)1(λc.c) =>
+λc.c
 ```
 
 Lazy evaluation has the benefit of terminating as frequently as **Normal Order** evaluation, but maintaining the efficiency of **Applicative Order** evaluation. I will defer to Ariola et al. for an explanation of how laziness provides the desirable properties of both NO and AO evaluation. "lazy languages only reduce an argument if the value of the corresponding formal parameter is needed for the evaluation of the procedure body"(Ariola et al 1995:233), this delayed evaluation is similar to NO, except that evaluation is delayed even further; rather than evaluating the entire λ-term only the expression in function position is evaluated. "after reducing the argument, the evaluator will remember the resulting value for future references to that formal parameter"(Ariola et al 1995:233) where AO ensures that bound variables are reduced only once by evaluating function arguments as they are substituted for named variables, lazy evaluation ensures that bound variables are only evaluated once by memoizing the result of evaluation and maintaining a reference from each λ-expression to the associated evaluated value. As mentioned in the section summary, the importance of evaluation order and intermediate normal forms is that they are necessary considerations for pragmatic implementations of programming languages predicated on the lambda calculus. The motivation for lazy evaluation follows logically from this consideration, as it is the 'best of both worlds'. However, it is not so straightforward, there is an unfortunate quirk with lazyness, namely that one "cannot use the calculus to reason about sharing in the evaluation of a program"(Ariola et al 1995:233). Ariola et al. provide a solution to this quirk in their paper _A Call-By-Need Lambda Calculus_, however that is beyond the scope of this post. I bring up the difficulty of formalizing laziness within lambda calculus to demonstrate how complicated the operationalization of these calculi can be. However, the foundational building blocks for reasoning about the operational semantics of the lambda calculus are intermediate normal forms, and evaluation strategies.

@@ -7,41 +7,54 @@
     padding: 9rem 5rem 5rem;
   }
 }
+
+.post-content {
+  font-family: 'Montserrat';
+}
+
 .post-content h1 {
+  font-family: 'Iosevka';
   margin-top: 2rem;
   font-size: 3.2rem;
   border-bottom: 0.1rem solid #1d263b;
 }
 
 .post-content h2 {
+  font-family: 'Iosevka';
   margin-top: 2rem;
   font-size: 2.6rem;
 }
 
 .post-content h3 {
+  font-family: 'Iosevka';
   margin-top: 1rem;
   font-size: 2.2rem;
 }
 
 .post-content h4 {
+  font-family: 'Iosevka';
   margin-top: 1rem;
   font-weight: 500;
   font-size: 1.8rem;
 }
 
-.post-content ul,
-.post-content ol {
+.post-content ul {
   margin-top: 1rem;
   font-size: 1.6rem;
   margin-left: 3rem;
-  list-style-type: decimal;
+  line-height: 2.8rem;
+  list-style-type: disc;
 }
 
 .post-content li ul {
   margin-top: 0rem;
   font-size: 1.6rem;
   margin-left: 3rem;
-  list-style-type: lower-alpha;
+  list-style-type: circle;
+}
+
+.post-content code {
+  font-family: 'Iosevka';
 }
 
 .post-content a {
@@ -49,21 +62,22 @@
 }
 
 .post-content p {
-  font-family: 'Montserrat';
-  text-align: justify;
-  line-height: 2.4rem;
+  text-align: left;
+  line-height: 2.6rem;
 }
 
+
 .byline {
-  font-size: 1.6rem;
+  font-size: 2rem;
 }
+
 .date {
-  font-size: 1.2rem;
+  font-size: 1.6rem;
 }
 
 .post-tags {
   margin-top: 2rem;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   margin-bottom: 1rem;
 }
 
@@ -71,7 +85,58 @@
   background-color: gainsboro;
   color: #1D263B;
   border-radius: .5rem;
-  padding: .2rem;
+  padding: .4rem;
   margin-right: 0.5rem;
 }
 
+.post-content ol {
+  margin-top: 1rem;
+  font-size: 1.6rem;
+  margin-left: 3rem;
+  list-style-type: decimal;
+}
+
+sup {
+  vertical-align: top;
+  font-size: 1.2rem;
+  position: relative;
+  top: -0.5rem;
+}
+
+strong {
+  font-weight: 700;
+}
+
+.md-image {
+  width: 100%;
+  padding: 4rem;
+}
+
+table {
+  width: 100%;
+  text-align: left;
+  font-size: 1.8rem;
+  line-height: 2.6rem;
+  margin: 2rem 0;
+  border-collapse: collapse;
+}
+
+table thead {
+  border-bottom: 2px solid #1D263B;
+}
+
+table thead tr th {
+  padding: 0.4rem;
+}
+
+table tbody tr {
+  border-bottom: 1px solid #1D263B;
+}
+
+table tbody tr:last-of-type {
+  border-bottom: none;
+}
+
+table tbody tr td {
+  padding: 0.4rem;
+}

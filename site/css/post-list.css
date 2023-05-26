@@ -76,17 +76,22 @@
 
 /* Tags */
 
-#productivity {
+.tag.productivity {
   background-color: #9c7a84;
   color: #fef5e6;
 }
 
-#book-review {
+.tag.book-review {
   background-color: #92a34c;
   color: #fef5e6;
 }
 
-#lambda-calculus {
+.tag.lambda-calculus {
   background-color: #FFD9DA;
+  color: #1F211C;
+}
+
+.tag.nix {
+  background-color: #D2D9DB;
   color: #1F211C;
 }
