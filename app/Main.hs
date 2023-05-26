@@ -24,13 +24,14 @@ import Development.Shake.Forward
 import GHC.Generics (Generic)
 import Slick
 import System.Environment (lookupEnv)
-import Text.Pandoc (ReaderOptions (..))
+import Text.Pandoc
+    ( ReaderOptions(..),
+      extensionsFromList,
+      Extension(..),
+      githubMarkdownExtensions )
 import Text.Pandoc.Options (def)
 import Slick.Pandoc
 import Data.Foldable
-import Text.Pandoc (extensionsFromList)
-import Text.Pandoc (Extension(..))
-import Text.Pandoc (githubMarkdownExtensions)
 
 {------------------------------------------------
                     Config
@@ -40,12 +41,13 @@ siteMeta :: SiteMeta
 siteMeta =
     SiteMeta
         { siteAuthor = "jonathanlorimer"
-        , baseUrl = "https://example.com"
+        , baseUrl = "https://jonathanlorimer.dev"
         , siteTitle = "Jonathan Lorimer"
         , githubUser = "jonathanlorimer"
         , linkedInUser = "jonathan-lorimer-dev"
         , twitterUser = "jonathanlorime1"
         , mastodonUser = "jonathanlorimer"
+        , image = "personalLogo1200px.png"
         }
 
 type SiteM = ReaderT FilePath Action
@@ -74,6 +76,7 @@ data SiteMeta = SiteMeta
     , linkedInUser :: String
     , twitterUser :: String
     , mastodonUser :: String
+    , image :: String
     }
     deriving (Generic, Eq, Ord, Show, ToJSON)
 
@@ -230,7 +233,8 @@ buildIndex = do
     outputFolder <- ask
     lift $ do
         indexT <- compileTemplate' "site/templates/index.html"
-        let indexHTML = T.unpack $ substitute indexT $ toJSON siteMeta
+        let withOgType = _Object . at "ogType" ?~ String "website"
+            indexHTML = T.unpack $ substitute indexT $ withOgType $ toJSON siteMeta
         writeFile' (outputFolder </> "index.html") indexHTML
 
 -- | given a list of posts this will build a table of contents
@@ -240,7 +244,10 @@ buildTableOfContents posts' = do
     lift $ do
         postsT <- compileTemplate' "site/templates/posts.html"
         let postsInfo = PostsInfo{posts = sortBy (\x y -> compare (date y) (date x)) posts'}
-            postsHTML = T.unpack $ substitute postsT (withSiteMeta $ toJSON postsInfo)
+            withUrl = _Object . at "url" ?~ String "posts"
+            withOgType = _Object . at "ogType" ?~ String "articles"
+            postsData = withSiteMeta . withUrl . withOgType $ toJSON postsInfo
+            postsHTML = T.unpack $ substitute postsT postsData
         writeFile' (outputFolder </> "posts.html") postsHTML
 
 -- | Find and build all posts
@@ -262,12 +269,13 @@ buildPost srcPath = do
       postData <- mdToHTML . T.pack $ postContent
       let postUrl = T.pack . dropDirectory1 $ srcPath -<.> "html"
           withPostUrl = _Object . at "url" ?~ String postUrl
+          withOgType = _Object . at "ogType" ?~ String "article"
           withPrettyDate = over (_Object . at "date" . mapped) $
             \case
               String s -> String . T.pack . formatDatePretty . T.unpack $ s
               x -> x
       -- Add additional metadata we've been able to compute
-      let fullPostData = withSiteMeta . withPostUrl $ postData
+      let fullPostData = withSiteMeta . withPostUrl . withOgType $ postData
       template <- compileTemplate' "site/templates/post.html"
       writeFile' (outputFolder </> T.unpack postUrl) . T.unpack
         $ substitute template . withPrettyDate

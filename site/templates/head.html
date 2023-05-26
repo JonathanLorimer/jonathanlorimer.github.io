@@ -5,6 +5,33 @@
     <meta name="description" content="{{siteTitle}}">
     <meta name="author" content="{{siteAuthor}}">
     <meta name=viewport content="width=device-width, initial-scale=1">
+    <meta name="twitter:card" content="summary">
+
+    {{#twitterHandle}}
+    <meta name="twitter:site" content="@{{twitterHandle}}">
+    <meta name="twitter:creator" content="@{{twitterHandle}}">
+    {{/twitterHandle}}
+
+    <meta property="og:title" content="{{title}}" />
+    <meta property="og:description" content="{{description}}" />
+    <meta name="twitter:title" content="{{title}}">
+    <meta name="twitter:description" content="{{description}}">
+
+    {{#image}}
+    <meta name="twitter:image" content="{{baseUrl}}/images/{{image}}">
+    <meta property="og:image" content="{{baseUrl}}/images/{{image}}" />
+    {{/image}}
+    {{#url}}
+      <meta property="og:url" content="{{baseUrl}}/{{url}}" />
+    {{/url}}
+    {{^url}}
+      <meta property="og:url" content="{{baseUrl}}" />
+    {{/url}}
+
+    {{#ogType}}
+    <meta property="og:type" content="{{ogType}}" />
+    {{/ogType}}
+
     <title>{{siteTitle}}</title>
     <!-- generics -->
     <link rel="icon" href="/images/favicon-228.png" sizes="228x228">
