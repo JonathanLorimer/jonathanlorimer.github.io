@@ -27,104 +27,96 @@ tags: [nix]
 
 _The Purely Functional Software Deployment Model_[^1] by Eelco Dolstra (herein
 referred to as "the thesis") is often pointed to as a great resource for
-learning about nix, albeit technical and formal. A reasonable response to this
-would be: Is a 20 year old, ~250 page thesis really the best way to understand
-a software management tool? I set out to discover the answer to this question
-myself and found that the thesis was very accessible, remarkably relevant given
-its age, and that a significant portion of the content was philosophical rather
-than technical. Therefore, my aspiration for this blog post is to crystalize
-some of the insights from the thesis into short form content; it will either
-satiate the reader's appetite for the topic, or inspire them to go on and
-consume the full text.
+learning about nix, albeit technical and formal. I wanted to read it myself,
+and see if it was as good as people said. I found that the thesis was very
+accessible, remarkably relevant given its age, and that a significant portion
+of the content was philosophical rather than technical. Therefore, my
+aspiration for this blog post is to crystallize some of the insights from the
+thesis into short form content. Hopefully this post will inspire you to go on
+and read the full text, or at least provide an expedient proxy for doing so.
 
 # Correct Software Deployment
 
-I'm going to start at the end of the thesis. Dolstra, summarizes in the
-conclusion, that the purpose of the project was to achieve a system for correct
+I'm going to start at the end of the thesis. Dolstra, summarizing the thesis in the
+conclusion, says that the purpose of the project was to achieve a system for correct
 software deployment. He then goes on to explain that correctness is achieved
-through two main vehicles. A precise naming scheme that leverages cryptographic
-hashes to concisely summarize the software identified by said name. This naming
-schema helps us achieve a much richer notion of equality than conventional
-naming schema's (i.e. `openssl-3.0.8`). A "purely functional model" of software
-deployment. What exactly is meant by "purely functional model" is slightly
-unclear, but my understanding is that it boils down to immutable build
-artefacts, pure build processes (depend only on their inputs) that admit no
-side-effects, compositionality of software components.[^2] I think the purely
-functional bit is particulary confusing because the nix expression language is
-itself purely functional, but the real critical piece is the functional
-principles applied to build and deployment strategies.
+through two main vehicles. First, through a precise naming scheme that
+leverages cryptographic hashes to concisely summarize the software identified
+by said name. This naming schema helps us achieve a much richer notion of
+equality than conventional naming schema (i.e. `openssl-3.0.8`). A "purely
+functional model" of software deployment. What exactly is meant by "purely
+functional model" is slightly unclear, but my understanding is that it boils
+down to immutable build artifacts, pure build processes (depend only on their
+inputs) that admit no side-effects, and compositionality of software
+components.[^2] The purely functional bit is particularly confusing
+because the nix expression language is itself purely functional, but the real
+critical piece is the functional principles applied to build and deployment
+strategies.
 
-One ambiguity that might arise as a point of confusion is that there is a
-distinction between the philosophical aspects of the thesis (i.e. an ontology
-of software deployment, and what constitutes correct software deployment), and
-the techniques / implementations that are guided by the theory. The
-[Implementation Details](#implementation-details) will try to explain how
-constructs (like the cryptographic naming scheme, and purely functional
-deployment model) connect to the theory, albeit with less formality than the
-original thesis. This section will look at the philosophy, and therefore will
-focus on:
+One ambiguity that might be confusing is that there is a distinction between
+the philosophical aspects of the thesis (i.e. an ontology of software
+deployment, and what constitutes correct software deployment), and the
+techniques / implementations that are guided by the theory. The [Implementation
+Details](#implementation-details) section will try to explain how constructs
+(like the cryptographic naming scheme, and purely functional deployment model)
+connect to the theory, albeit with less formality than the original thesis. The
+current section will look at the philosophy, and therefore will focus on:
 
 - What is meant by correctness?
 - What does software deployment entail?
 - What are some desirable qualities of a correct system?
 
-I have separated out the "state of the art" section from the thesis, and mainly
-drawn out the points of how existing solutions fall short, in the [Problems
-With Existing Solutions](problems-with-existing-solutions) section. It seemed
-logically distinct to me, but Dolstra does use it to explain what software
-deployment is, and what some of the relevant problems in the space are.
-
 ## Correctness
 
-The simplest way to describe correctness as laid out in the thesis (as it
-pertains to software deployments) is through this formula `correctness =
-complete + no interference`. Completeness refers to the presence of all
-dependencies. The discussion around dependencies gets quite nuanced (i.e.
-runtime vs buildtime dependencies, distinguishing dependencies across system
-architectures or that are built slightly differently), but at its core this is
-the completeness criteria. Interference refers to case where two different
-deployments occupy the same namespace, and are therefore indistinguishable to
-the software that depends on one of them.
+The simplest way to summarize correctness as it pertains to software
+deployments is through this formula `correctness = complete + no interference`.
+Completeness refers to the presence of all dependencies. Interference refers to
+the case where two different software components occupy the same namespace, and are
+therefore indistinguishable to the component that depends on one of them.
 
-> Note: The notion of equailty mentioned earlier is creeping back in. When we
+> Note: The notion of equality mentioned earlier is important here. When we
 > say "two different" we mean that there is some equivalence relation that does
 > not hold, but the fact that they occupy the same namespace means there is
-> _some_ nominal equivalence relationship that _does_ hold
+> _some_ nominal equivalence relationship that _does_ hold, but it is wrong
+> in some sense.
 
 There are plenty of examples of bipartite definitions of correctness that rhyme
 with this one (soundness and completeness in logic), but I am going to steal
 the imagery from a classic example in discrete mathematics; bijectivity. For
-these images the circle on the left represents the set of software _components_
-that are named as inputs to a particular component of interest. The circle on
-the right represents the set of dependencies that are actually required to
-build the software component of interest. An arrow from left to right means
-that the named component on the left has been identified as corresponding to the
-dependency requirement on the right.
+the following images the circle on the left represents the set of software
+components in the environment available to us. The circle on the right
+represents the set of dependencies that are actually required to build the
+software component of interest. An arrow from left to right means that the
+component on the left has been identified as corresponding to the dependency
+required on the right.
 
 > Terminology: In the thesis Dolstra refers to discrete units of software as
 > components. These can be software that we are building, or software that has
 > already been built. These can be composed together through dependency
-> relations. Put another way components can be inputs of other components.
+> relations. Put another way: components can be the build inputs of other
+> components.
 
-The diagram below represents the a situation where the deployment admits no
-interference; there are no "named components" on the left that could be
+The diagram below illustrates a situation where there is no interference. This
+means that there are no components in the environment on the left that could be
 accidentally mixed up when provided to the build. In other words there is a 1:1
-correspondence between the components we have identified and the ones that we
-actually want. Non-interference is not enough, however. You probably noticed
-that there is a required dependency on the right that is unfulfilled. This is
-where completeness comes in; it entails that all required dependencies on the
-right are provided and accounted for on the left.
+correspondence between the components we have identified in the environment and
+the ones that we actually want.
+
+Non-interference is not enough, however. You probably noticed that there is a
+required dependency on the right that is unfulfilled. This is where
+completeness comes in; it entails that all required dependencies on the right
+are provided and accounted for on the left.
 ![Example of a relation that is injective but not surjective](/images/Injective.svg){.md-image}
 
-The next diagram represents the case where we have a complete deployment. Every
-required dependency on the right is provided by at least one component on the
-left. However, the catch here is that there is ambiguity, there are two
-components that have both been identified as fulfilling a dependency
-requirement, but by some notion of equality they are different (i.e. perhaps
-they are the same software by name, at the same version, but one is compiled with a
-threaded runtime and the other with a synchronous runtime). This is an example
-of interference, there is no way to tell that we will get the input that we
-_really_ mean.
+The next diagram demonstrates the case where we have a complete deployment.
+Every required dependency on the right is provided by at least one component in
+the environment on the left. However, the catch here is that there is
+ambiguity, there are two components that have both been identified as
+fulfilling a dependency requirement, but by some notion of equality they are
+different (i.e. perhaps they are the same software by name, at the same
+version, but one is compiled with a threaded runtime and the other with a
+synchronous runtime). This is an example of interference, there is no way to
+tell that we will get the input that we _really_ mean.
 
 To make the example more concrete: perhaps the purple dot on the left is
 `openssl-3.0.8` and the orange dot is `openssl-1.1`, and the blue dot on the
@@ -132,7 +124,8 @@ right is just a requirement for `openssl`, and the arrows from the purple and
 orange dot are a lookup on `$PATH` for `/usr/bin/openssl`. Well, since both
 versions of `openssl` can live at that location, we aren't sure which we will
 get, and therefore we might get a different component than the one that we
-actually mean, the way that we identify components is too coarse grained.
+actually mean, the way that we identify components in this example is too
+coarse grained.
 ![Example of a relation that is surjective but not injective](/images/Surjective.svg){.md-image}
 
 This diagram demonstrates what is meant by correct deployment. There is exactly
@@ -140,10 +133,10 @@ one software component corresponding to every dependency requirement.
 ![Example of a relation that bijective](/images/Bijective.svg){.md-image}
 
 > If you are familiar with functions from discrete mathematics, you probably
-> noticed that I hand-waved away the existence of named inputs on the left that
-> are not required dependencies on the right. If you are unsatisfied you can
-> imagine a pruning function that eliminates superflous inputs from the
-> environment that can be pre-composed with this function.
+> noticed that I hand-waved away the existence of components in the environment
+> on the left that are not required dependencies on the right. If you are
+> unsatisfied you can imagine a pruning function that eliminates superfluous
+> components that can be pre-composed with this function.
 
 To re-iterate, `correctness = completeness + no intereference`:
 
@@ -157,7 +150,7 @@ To re-iterate, `correctness = completeness + no intereference`:
 
 Software deployment is the distribution of software; the acquisition,
 installation, upgrading, and uninstallation process.[^3] There are two broad
-classes of problems with software deployment: manageing the environment and
+classes of problems with software deployment: managing the environment and
 correctness as discussed in the previous section, and manageability / usability
 as discussed in the next section.
 
@@ -180,18 +173,19 @@ realization process.
 ## Bonus: Manageability & Usability
 
 The reason that I consider this section a "bonus" is that, by the end of the
-thesis, manageability isn't really mentioned. There are some nice aspects of
-nix that aid user experience though. Manageability and usability are concerned
-with the operations associated with software deployment. This effectively
-amounts to software deployment experience. Here are some desiderata mentioned
-in the thesis[^6]:
+thesis, manageability isn't really mentioned as much. There are some nice
+aspects of nix that, in service of correctness, end up improving user
+experience. Manageability and usability are concerned with the operations
+associated with software deployment. This effectively amounts to the user
+experience of the individual trying to orchestrate the deployment. Here are
+some desiderata mentioned in the thesis[^6]:
 
-- Is uninstallation complete and sound: does it remove every artefact of the
+- Is uninstallation complete and sound: does it remove every artifact of the
   initial installation while not breaking other software deployments on the
   system?
 - Upgrades should preserve correctness of the system (see DLL hell)
 - Upgrade granularity (i.e. upgrade all machines in a network, only upgrade vim
-  on my machine.
+  on my machine).
 - Rolling back upgrades is desirable (requires some form of immutability)
 - In order to effectively stay up to date with security upgrades one needs: to
   know what software is in use, whether updates are available, whether the
@@ -201,10 +195,11 @@ in the thesis[^6]:
 
 # Problems With Existing Solutions
 
-In the thesis Dolstra does an analysis of several existing package management /
+In the thesis, Dolstra does an analysis of several existing package management /
 software deployment systems; low level tools like RPM, Source Deployment Models
 like FreeBSD Ports and Gentoo, monolithic deployment models like Windows /
-MacOS. Here is a compiled list of problems[^7]:
+MacOS. Here is a compiled list of some of the  problems one might face on these
+systems[^7]:
 
 - Non-atomic upgrades / inability to rollback.
 - Applications must be monolithic and statically contain all dependencies (leads to large bundle sizes, and inflexibility).
@@ -215,17 +210,18 @@ MacOS. Here is a compiled list of problems[^7]:
 - Incomplete deployment.[^10]
 
 All of these issues appear in the most widely used operating systems today.
-When you enumerate the list its pretty surprising the we put up with these
-difficulties. In fact Dolstra comments that the system that comes closest to
-correct deployment is not actually a classical deployment system but "developer side" Software
-Configuration Management tools which are basically version control software (like git)
-with build management integrated.[^11]
+When you enumerate the list its pretty surprising that end users put up with
+these difficulties. In fact Dolstra comments that the system that comes closest
+to correct deployment is not actually a classical deployment system but
+"developer side" Software Configuration Management tools which are basically
+version control software (like git) with build management integrated.[^11]
 
 # The Benefits of Nix
 
 I have often said, when asked to describe Nix, that the single greatest insight
-the Nix approach has is that it gets the "naming" of software right. The thesis
-offers a much more nuanced perspective on this framing.
+of the Nix approach to software deployment is that it gets the "naming" of
+software right. The thesis offers a much more nuanced perspective on this
+framing.
 
 The core principles of the Nix deployment approach are to[^12]:
 1. Isolate components from each other, in a central store.
@@ -236,10 +232,10 @@ I will try and break these three principles down, but they are heavily related,
 so it can be difficult to disambiguate them.
 
 The central store is critical for the "realization" of components (as mentioned
-in the [Software Deployment](#software-deployment) section), basically it gives
-us a single place to look to find dependencies. The isolation of components
-mitigates against the potential downside of a single store, namely
-interference.
+in the [Software Deployment](#software-deployment) section), it gives us a
+single place to look to find dependencies once we have identified the ones that
+we want. The isolation of components mitigates against the potential downside
+of a single store, namely interference.
 
 The naming schema is critical for the "identification" of components.
 Cryptographic hashes mean that we have a massive collision free namespace to
@@ -249,25 +245,26 @@ encode in the name.
 The semantics of the naming schema ensures correctness. Since the
 cryptographic hash is generated from all the inputs (think dependencies)
 required to build the software, we have a robust notion of equality with which
-to distinguish components. Additionally, we Nix uses this knowledge of all the
+to distinguish components. Additionally, Nix uses this knowledge of all the
 inputs to ensure that there are no undeclared dependencies at build time.
 
 An important aside here is that we have mostly been talking about Nix's notion
 of equality to distinguish components. But it is desirable that we share as
 many components as possible, and don't need to rebuild components that are
-equal. So this notion of equality prevents intereference, but it can also be
+equal. So this notion of equality prevents interference, but it can also be
 used to optimize builds by sharing dependencies across components. In the
 thesis this is referred to as maximal sharing.[^13]
 
 In addition to the core principles, Nix uses a purely functional model where
 all software in the central store is immutable. This means that it cannot be
-modified in a breaking way. It also prevents side effects in the build process
+modified in a breaking way. Nix also prevents side effects in the build process
 which means that software components are built deterministically. This is
-important for ensuring that the name directly corresponds to the component.
+important for ensuring that the name (which is based on the inputs to a
+component) directly corresponds to the output of a build (the actual component).
 
-This approach yields these benefits[^14]:
+The Nix approach yields these benefits[^14]:
 
-- Complete deployment and non-intereference (i.e. correct software deployment)
+- Complete deployment and non-interference (i.e. correct software deployment)
 - Atomic upgrades
 - O(2) rollbacks
 - Transparent source / binary distribution.[^15]
@@ -378,6 +375,10 @@ execution of that method represents runtime.[^23]
 
 ### Obtained and dereferenced at runtime
 
+The filesystem corollary for the code below is similar to acquiring and using a
+component from the `$PATH` search path, or as a program argument (maybe passed
+in via CLI).
+
 ```{.typescript}
 class BuildTime {
     constructor(){}
@@ -388,11 +389,10 @@ class BuildTime {
 }
 ```
 
-The filesystem corollary of the above code is similar to acquiring and using a
-component from the `$PATH` search path, or as a program argument (maybe passed
-in via CLI).
-
 ### Obtained and dereferenced at buildtime
+
+This example cannot cause a dangling pointer: similar to static libraries, a
+compiler, or other things that are not usually retained in the build result.
 
 ```{.typescript}
 class BuildTime {
@@ -408,10 +408,10 @@ class BuildTime {
 }
 ```
 
-This example cannot cause a dangling pointer: similar to static libraries, a
-compiler, or other things that are not usually retained in the build result.
-
 ### Obtained at buildtime, dereferenced at runtime
+
+This represents Unix style dynamically linked libraries, for example storing
+the full path of a program in the RPATH of an application binary.
 
 ```{.typescript}
 class BuildTime {
@@ -426,9 +426,6 @@ class BuildTime {
     }
 }
 ```
-
-This represents Unix style dynamically linked libraries, for example storing
-the full path of a program in the RPATH of an application binary.
 
 These three examples serve to demonstrate how hard it is to ensure that there
 are no dangling pointers. Pointers may exist at runtime (i.e. in the source)
