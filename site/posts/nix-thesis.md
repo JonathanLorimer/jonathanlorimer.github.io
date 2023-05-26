@@ -262,64 +262,61 @@ which means that software components are built deterministically. This is
 important for ensuring that the name (which is based on the inputs to a
 component) directly corresponds to the output of a build (the actual component).
 
-The Nix approach yields these benefits[^14]:
+The Nix approach yields these benefits, which are cited in the thesis as its
+main contributions[^14]:
 
 - Complete deployment and non-interference (i.e. correct software deployment)
 - Atomic upgrades
-- O(2) rollbacks
+- O(1) rollbacks
 - Transparent source / binary distribution.[^15]
-- Inefficiencies due to purely functional / immutable model are ammortized
+- Inefficiencies due to purely functional / immutable model are amortized
   through optimizations like caching and sharing.
 - Nix component language (the language used for expressing software components)
   makes composition trivial and supports it first class.
-- Distributed multi-platfform builds; remote build is indistinguishable from a local build.
+- Distributed multi-platform builds; a remote build is indistinguishable from a local build.
 
-These benefits totally solve the most common problems with software deployments
-and managing environments. A great illustration of this is how Nix shines when
-used for managing CI environments, which are notoriously inconsistent and
-highlight how Nix gets things right.[^16]
+These benefits are a great boon to usability, and the principles mentioned
+earlier in the section ensure correctness. A great illustration of where Nix
+shines is in managing CI environments, which are notoriously inconsistent.[^16]
 
 # Implementation Details
 
-We had to briefly get into the low level details of Nix's approach to software
-deployment in order to anchor the benefits it provides in the previous section.
-This section will expand on those details. [The Nix Store](#the-nix-store)
-section really focuses on the "identification" aspect of the software
-deployment problem, and the [Filesystem As Memory](#filesystem-as-memory)
-really focuses on the details of how "realization" works on actual filesystems.
+We had to briefly get into the low level details (cryptographic hashing,
+immutable build artifacts, centralized store) of Nix's approach to software
+deployment previous section. This section will expand on those details and try
+to connect the "how" to the "why".
 
 ## The Nix Store
 
-How does the nix store actually work under the hood? It stores software
+How does the Nix store actually work under the hood? It stores software
 components as directories (named using the hashing schema mentioned before) in
-a root directory (usually `/nix/store`). Its worth mentioning that nix has an
+a root directory (usually `/nix/store`). Its worth mentioning that Nix has an
 extremely weak notion of what constitutes a component; it could be a static
 configuration file, a compiled binary, source code, a single javascript file
-that can be interpreted and run. As long as it can be stored in a filesystem it
+that can be interpreted and run[^17]. As long as it can be stored in a filesystem it
 is a viable candidate for being a software component. As mentioned before, this
-naming convention prevents intereference and guarantees completeness. We will
+naming convention prevents interference and guarantees completeness. We will
 look at how that works.
 
-### Preventing intereference
+### Preventing interference
 
 The cryptographic hash for a component is computed based on its inputs.
 Therefore if components differ in any way at all it will be reflected in the
-hash. This means that installation or uninstallation will not effect any other
+hash. This means that installation or uninstallation will not affect any other
 components. Since inputs themselves have hashes, and if these hashes change
 then the hash of the component that depends on the input changes, this means
 that hashes are effectively computed recursively. Therefore changes to inputs
 "propagate" through a dependency graph, another way to put it is that changes
-to transitive dependencies will be reflected in the upstream component.[^17]
+to transitive dependencies will be reflected in the upstream component.[^18]
 
 ### Completeness
 
-Nix guarantees that all dependencies are identified. In other systems
-dependencies are usually declared nominally (like RPM) and can be forgotten, or
-they are passed in dynamically like linking a C module. Since nix stores
-components in isolation, there is no way to leverage global namespaces to
-implicitly provide an input. This means that if you are depending on the
-presence of a dependency implicitly (i.e. globally) then the build will just
-_fail_.[^18]
+Nix guarantees that all dependencies are identified at build time. In other
+systems, dependencies are usually declared nominally (like RPM) and can be
+forgotten, or they are passed in dynamically like linking a C module. Since Nix
+stores components in isolation, there is no way to leverage global namespaces
+to implicitly provide an input. This means that if you are depending on the
+presence of a dependency implicitly then the build will just _fail_.[^19]
 
 > I think this is one of the reasons that nix gets a bad wrap, because it
 > forces you to do things in a principled way and fails early it can seem like
@@ -327,51 +324,52 @@ _fail_.[^18]
 > giving you feedback that the current approach being taken may fail silently
 > in the future, or just not work in a different environment.
 
-The key to this is that if a dependency is not explicitly declared then the
-component will fail deterministically.[^19]
+The key to this is that, if a dependency is not explicitly declared, then the
+component will fail deterministically.[^20]
 
-The cryptographic hash takes care of all buildtime dependencies, but you might
-be wondering about runtime dependencies. Runtime dependencies will be hard
-coded into the component with a reference to a nix store path, along with the
-distinctive cryptographic hash. Nix can scan for these distinctive strings and
-keep track of required runtime dependencies. This means that _all_ dependencies
-for a component are tracked.[^20]
+The cryptographic hash ensures that all buildtime dependencies are accounted
+for, but you might be wondering about runtime dependencies. Runtime
+dependencies will be referenced in the actual component, and will be
+distinctive since it must reference a Nix Store path (which necessarily
+contains a high entropy string, a cryptographic hash). Nix can scan for
+these distinctive strings and keep track of required runtime dependencies.
+This means that _all_ dependencies for a component are tracked.[^21]
 
-The final concept nix concept that allows it to facilitate complete deployments
-is called a _closure_. The closure refers to the entire graph of transitive
+The final concept that nix leverages to facilitate complete deployments is
+called a _closure_. The closure refers to the entire graph of transitive
 dependencies tracked for a component. This "closure" is what needs to be
-provided in order to ensure safe, correct deployment.[^21] Nix provides a method for
-computing these closures and handling them in an ergonomic way.
+provided in order to ensure safe, correct deployment.[^22] Nix provides a
+method for computing these closures and handling them in an ergonomic way.
 
 ## Filesystem As Memory
 
 The "Filesystem as memory" analogy was really impactful on me while reading the
-nix thesis. It is a bit unfortunate that going over it will re-state a lot of
+Nix thesis. It is a bit unfortunate that going over it will re-state a lot of
 what we have already covered. However, I think it is worthwhile to examine it
 to drive home the points about correctness. Additionally it will motivate a
-concept that is core to nix, and critical for making the purely functional
-model viable, which is conservative garbage collection.
+concept that is core to nix, and critical for mitigating the space burden of
+guaranteeing completeness.
 
 | Filesystem | Memory |
 |------------|--------|
 | Filepath | Memory Address |
-| String repersenting a path | Pointer |
+| String representing a path | Pointer |
 | Accessing a file through a path | Pointer dereference |
 | Software components | Objects (values) |
 | Reference to absent component | Dangling pointer |
 
 This table represents the meat of the analogy. The major upshot of this is that
 component interference due to file overwriting can be viewed as address
-collision. Component incompleteness, or by way of the analogy "the inability to
-dereference a pointer" because a file doesn't exist is the deployment
-equivalent of a dangling pointer.[^22]
+collision. Component incompleteness, or "the inability to
+dereference a pointer" because a file doesn't exist, is the deployment
+equivalent of a dangling pointer.[^23]
 
 Understanding how pointers can be dereferenced is critical to preventing
 dangling pointers, so we will enumerate them below. The examples are in
 typescript and adapted from the original Java versions in the thesis, the class
 in the example is called `Buildtime` to denote that construction of the class
 represents buildtime, and there is a method called `runtime` to denote that the
-execution of that method represents runtime.[^23]
+execution of that method represents runtime.[^24]
 
 ### Obtained and dereferenced at runtime
 
@@ -391,8 +389,9 @@ class BuildTime {
 
 ### Obtained and dereferenced at buildtime
 
-This example cannot cause a dangling pointer: similar to static libraries, a
-compiler, or other things that are not usually retained in the build result.
+This example cannot cause a dangling pointer because the pointer is
+dereferenced at buildtime: similar to static libraries, a compiler, or other
+things that are not usually retained in the build result.
 
 ```{.typescript}
 class BuildTime {
@@ -410,8 +409,8 @@ class BuildTime {
 
 ### Obtained at buildtime, dereferenced at runtime
 
-This represents Unix style dynamically linked libraries, for example storing
-the full path of a program in the RPATH of an application binary.
+This example represents Unix style dynamically linked libraries, for example
+storing the full path of a program in the `RPATH` of an application binary.
 
 ```{.typescript}
 class BuildTime {
@@ -429,26 +428,27 @@ class BuildTime {
 
 These three examples serve to demonstrate how hard it is to ensure that there
 are no dangling pointers. Pointers may exist at runtime (i.e. in the source)
-similar to the first example. Pointers may be passed in at build time similar
-to the second example, but in this case we want to make sure we don't
-distribute them with the component, since they have already done their job.
-However, we need to be careful, since some pointers passed in at build time are
-still required at runtime, like dynamically linked libraries (as shown in the
-third example). A final consideration is that particularly deranged users can
-use pointer arithmetic to get new pointers, the filesystem analogy would be to
-use string manipulation to find a filepath.[^24]
+similar to the first example. Pointers may be passed in and dereferenced at
+build time similar to the second example, but in this case we want to make sure
+we don't distribute them with the component, since they have already done their
+job. However, we need to be careful, since some pointers passed in at build
+time are still required at runtime, like dynamically linked libraries (as shown
+in the third example). A final consideration is that there is a particularly
+circumstance were a new pointer is obtained through pointer arithmetic, the
+filesystem analogy would be to use string manipulation to find a filepath.[^25]
 
 Closures (as mentioned before) are the solution to dangling pointers, by
-definition they do not contain any. But there is another issue, and that is
+definition they do not contain any.[^26] But there is another issue, and that is
 keeping our closures from growing unnecessarily large.
 
 The solution in this case is _conservative garbage collection_. We have to scan
 components for potential runtime dereferences, and anything that looks like a
 valid pointer will be kept. There may be false positives, but that is an
-acceptable tradeoff. It is unacceptable for correctness to have a dangling
-pointer. Nix imposes a _pointer discipline_ through its hash-based naming
-schema which allows pointers to be recognizable within components, and the
-pointers are isolated from one another within the nix store.[^25]
+acceptable tradeoff. It is unacceptable to have a dangling pointer, considering
+we want to guarantee correctness. Nix imposes a _pointer discipline_ through
+its hash-based naming schema which allows pointers to be recognizable within
+components, and the pointers are isolated from one another within the nix store
+by virtue of component isolation.[^27]
 
 ## Purely Functional Model
 
@@ -459,20 +459,20 @@ purity of the build process; the build process admits no side-effects.
 Because the nix store is immutable, it means that there are no destructive
 upgrades. Upgrading only happens by rebuilding the component and its
 dependencies. Nix ensures that components never change after they have been
-built by marking them as "read-only".[^26]
+built by marking them as "read-only".[^28]
 
 There are many measures taken to ensure that the build process for nix is
 hermetic. The environment variables are cleared, which means that `$PATH` is
 empty. Linux systems use a patched dynamic linker that doesn't search in
 default locations. `$HOME` is set to a non-existent folder called
 "/homless-shelter", so no program can use it for dereferencing via pointer
-arithmetic (to use the memory analogy).[^27] Pure builds are important because
+arithmetic (to use the memory analogy).[^29] Pure builds are important because
 they mean that each build is deterministic; the inputs to a component (or its
 dependencies) determine the output.
 
 The combination of immutable store paths and determinism is powerful. It means
-that the hash identifies the contents of a component _at all times_. Which
-furnishes Nix with strong correctness guarantees.[^28]
+that the cryptographic hash identifies the contents of a component _at all
+times_. Which furnishes Nix with strong correctness guarantees.[^30]
 
 # Nix Principles
 
@@ -494,36 +494,37 @@ static compositions.
 
 There is a tradeoff here: dynamic means the ability to upgrade (perhaps fix)
 everything at once, but it also means the ability to break everything at once.
-Nix chooses correctness at the cost of expedience.[^29]
+Nix chooses correctness at the cost of expedience.[^31]
 
 ### Static compositions are good. Late compositions are better.
 
 Static composition is obviously expensive, since a component needs to be
 re-built if any of its dependencies (previous compositions) changes, no matter
 how small. Late static composition is a technique where a "wrapper component",
-instead of the program in question, accpets all of the components to be
-composed as inputs and dynamically links them. A famous example in nixpkgs is
-firefox, where things like flashplayer and other firefox plugins are linked in
-the wrapper component, which is really just a shell script that provides the
-plugins via environment variables. Nix's hermetic environments make this
-possible without the risk of interference. Since the wrapper component can be
-generated very quickly, changing a small part of the composition remains cheap.[^30]
+instead of the program in question, accepts all of the components to be
+composed as inputs and dynamically links them. A famous example in
+[nixpkgs](https://ryantm.github.io/nixpkgs/) is firefox, where things like
+flashplayer and other firefox plugins are linked in the wrapper component,
+which is really just a shell script that provides the plugins via environment
+variables. Nix's hermetic environments make this possible without the risk of
+interference. Since the wrapper component can be generated very quickly,
+changing a small part of the composition remains cheap.[^32]
 
-> You can still see artefacts of the "wrapping" approach in nixpkgs today; the
-> wrapped firefox is provided under the name `firefox` but the unwrapped
-> version still exists as [firefox-unwrapped](https://search.nixos.org/packages?channel=unstable&show=firefox-unwrapped&from=0&size=50&sort=relevance&type=packages&query=firefox)
+> You can still see artifacts of the "wrapping" approach in nixpkgs today; the
+> wrapped firefox component is provided under the name `firefox` but the unwrapped
+> version still exists as [`firefox-unwrapped`](https://search.nixos.org/packages?channel=unstable&from=0&size=50&sort=relevance&type=packages&query=firefox-unwrapped)
 
 ### User environments are not a composition mechanism
 
 User environments can be used as a composition mechanism. This is an abuse of
 user environments, and should be avoided at all costs. Dependencies should be
 expressed through Nix as inputs. The abuse of user environments is one of the
-causes of trouble within existing software deployment systems.[^31]
+causes of trouble within existing software deployment systems.[^33]
 
 ### Fine-grained components are better than coarse-grained components
 
 Fine grained components are more compositional, they offer better re-use, and
-they help to mitigate unnecessarily large closures.[^32]
+they help to mitigate unnecessarily large closures.[^34]
 
 # Topics Not Covered
 
@@ -680,43 +681,45 @@ reached critical adoption.
     below, a configuration change needs to be made only once (to the Nix
     expression), and Nix through the build hook will take care of rebuilding
     the new configuration on all platforms."
-[^17]: Dolstra, "The Purely Functional Software Deployment Model," 21.
-[^18]: Dolstra, "The Purely Functional Software Deployment Model," 23.
+[^17]: Dolstra, "The Purely Functional Software Deployment Model," 19.
+[^18]: Dolstra, "The Purely Functional Software Deployment Model," 21.
 [^19]: Dolstra, "The Purely Functional Software Deployment Model," 23.
+[^20]: Dolstra, "The Purely Functional Software Deployment Model," 23.
 
     "Thus, when the developer or deployer fails to specify a dependency explicitly
     (in the Nix expression formalism, discussed below), the component will fail
     deterministically. That is, it will not succeed if the dependency already
     happens to be available in the Nix store, without having been specified as an
     input."
-[^20]: Dolstra, "The Purely Functional Software Deployment Model," 24.
+[^21]: Dolstra, "The Purely Functional Software Deployment Model," 24.
 
     "The hashing scheme comes to the rescue once more. The hash part of component
-    paths is highly distinctive, e.g., 6jq6jgkamxjj.... Therefore we can discover
+    paths is highly distinctive, e.g., 7jq6jgkamxjj.... Therefore we can discover
     retained dependencies generically, independent of specific file formats, by
     scanning for occurrences of hash parts. For instance, the executable image in
-    Figure 3.4 contains the highlighted string 5jq6jgkamxjj..., which is evidence
+    Figure 4.4 contains the highlighted string 5jq6jgkamxjj..., which is evidence
     that an execution of the svn program might need that particular OpenSSL
     instance. Likewise, we can see that it has a retained dependency on some Glibc
-    instance (/nix/store/73by2iw5wd8i.... Thus, we automatically add these as
+    instance (/nix/store/74by2iw5wd8i.... Thus, we automatically add these as
     runtime dependencies of the Subversion component."
-[^21]: Dolstra, "The Purely Functional Software Deployment Model," 24.
+[^22]: Dolstra, "The Purely Functional Software Deployment Model," 24.
 
     "The hash scanning approach gives us all runtime dependencies of a
     component, while hashes themselves prevent undeclared build-time
     dependencies. Furthermore, these dependencies are exact, not nominal (see
-    page 9). Thus, Nix knows the entire dependency graph, both at build time
+    page 10). Thus, Nix knows the entire dependency graph, both at build time
     and runtime. With full knowledge of the dependency graph, Nix can compute
-    closures of components. Figure 3.2 shows the closure of the Subversion
-    2.1.4 instance in the Nix store, found by transitively following all
+    closures of components. Figure 4.2 shows the closure of the Subversion
+    3.1.4 instance in the Nix store, found by transitively following all
     dependency arrows."
-[^22]: Dolstra, "The Purely Functional Software Deployment Model," 53.
-[^23]: Dolstra, "The Purely Functional Software Deployment Model," 53-54.
-[^24]: Dolstra, "The Purely Functional Software Deployment Model," 54.
-[^25]: Dolstra, "The Purely Functional Software Deployment Model," 57-58.
-[^26]: Dolstra, "The Purely Functional Software Deployment Model," 21
-[^27]: Dolstra, "The Purely Functional Software Deployment Model," 23
+[^23]: Dolstra, "The Purely Functional Software Deployment Model," 53.
+[^24]: Dolstra, "The Purely Functional Software Deployment Model," 53-54.
+[^25]: Dolstra, "The Purely Functional Software Deployment Model," 54.
+[^26]: Dolstra, "The Purely Functional Software Deployment Model," 55-56.
+[^27]: Dolstra, "The Purely Functional Software Deployment Model," 57-58.
 [^28]: Dolstra, "The Purely Functional Software Deployment Model," 21
+[^29]: Dolstra, "The Purely Functional Software Deployment Model," 23
+[^30]: Dolstra, "The Purely Functional Software Deployment Model," 21
 
     "An important point here is that upgrading only happens by rebuilding the
     component in question and all components that depend on it. We never
@@ -726,13 +729,13 @@ reached critical adoption.
     identifies the contents of the components at all times, not only just after
     it has been built. Conversely, the build-time inputs determine the contents
     of the component. Therefore we call this a purely functional model. In
-    purely functional programming languages such as Haskell [135], as in
+    purely functional programming languages such as Haskell [137], as in
     mathematics, the result of a function call depends exclusively on the
     definition of the function and on the arguments. In Nix, the contents of a
     component depend exclusively on the build inputs. The advantage of a purely
     functional model is that we obtain strong guarantees about components, such
     as non-interference."
-[^29]: Dolstra, "The Purely Functional Software Deployment Model," 170-171
-[^30]: Dolstra, "The Purely Functional Software Deployment Model," 171-172
-[^31]: Dolstra, "The Purely Functional Software Deployment Model," 172
-[^32]: Dolstra, "The Purely Functional Software Deployment Model," 174
+[^31]: Dolstra, "The Purely Functional Software Deployment Model," 170-171
+[^32]: Dolstra, "The Purely Functional Software Deployment Model," 171-172
+[^33]: Dolstra, "The Purely Functional Software Deployment Model," 172
+[^34]: Dolstra, "The Purely Functional Software Deployment Model," 174
