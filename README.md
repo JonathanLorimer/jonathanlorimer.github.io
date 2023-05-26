@@ -6,8 +6,8 @@
 nix develop .
 ```
 
-## Build
+## Build site
 
 ```
-nix build .#jonathanlorimerdev:exe:build-site
+nix run
 ```
