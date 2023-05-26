@@ -62,7 +62,7 @@
 }
 
 .post-content p {
-  text-align: justify;
+  text-align: left;
   line-height: 2.6rem;
 }
 
@@ -103,6 +103,11 @@ sup {
   top: -0.5rem;
 }
 
+strong {
+  font-weight: 700;
+}
+
 .md-image {
   width: 100%;
+  padding: 4rem;
 }

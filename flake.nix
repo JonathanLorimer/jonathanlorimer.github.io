@@ -53,6 +53,8 @@
             haskellPackages.cabal-fmt
             nodePackages.serve
             dig
+            mprocs
+            watchexec
           ] ++ (builtins.attrValues (import ./scripts.nix { s = pkgs.writeShellScriptBin; }));
         }
       );

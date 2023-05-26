@@ -1,0 +1,6 @@
+procs:
+  server:
+    cmd: ["serve", "build"]
+  builder:
+    cmd: ["watchexec", "cabal run"]
+

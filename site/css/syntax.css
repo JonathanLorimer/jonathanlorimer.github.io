@@ -41,7 +41,7 @@ p code {
 /* AlertTok */
 .sourceCode .al { color: #EC5f67; font-weight: bold; }
 /* FunctionTok */
-.sourceCode .fu { color: #333; }
+.sourceCode .fu { color: #7cafcb; }
 /* RegionMarkerTok */
 .sourceCode .re { color: red }
 /* ErrorTok */

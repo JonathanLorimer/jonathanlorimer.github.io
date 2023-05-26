@@ -168,6 +168,7 @@ mdToHTML = markdownToHTMLWithOpts markdownOptions defaultHtml5Options
          , Ext_footnotes
          , Ext_footnotes
          , Ext_link_attributes
+         , Ext_pipe_tables
          ]
        , githubMarkdownExtensions
        ]
