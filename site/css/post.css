@@ -111,3 +111,32 @@ strong {
   width: 100%;
   padding: 4rem;
 }
+
+table {
+  width: 100%;
+  text-align: left;
+  font-size: 1.8rem;
+  line-height: 2.6rem;
+  margin: 2rem 0;
+  border-collapse: collapse;
+}
+
+table thead {
+  border-bottom: 2px solid #1D263B;
+}
+
+table thead tr th {
+  padding: 0.4rem;
+}
+
+table tbody tr {
+  border-bottom: 1px solid #1D263B;
+}
+
+table tbody tr:last-of-type {
+  border-bottom: none;
+}
+
+table tbody tr td {
+  padding: 0.4rem;
+}
