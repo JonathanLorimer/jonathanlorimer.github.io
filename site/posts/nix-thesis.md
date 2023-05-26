@@ -37,30 +37,30 @@ and read the full text, or at least provide an expedient proxy for doing so.
 
 # Correct Software Deployment
 
-I'm going to start at the end of the thesis. Dolstra, summarizing the thesis in the
-conclusion, says that the purpose of the project was to achieve a system for correct
-software deployment. He then goes on to explain that correctness is achieved
-through two main vehicles. First, through a precise naming scheme that
-leverages cryptographic hashes to concisely summarize the software identified
-by said name. This naming schema helps us achieve a much richer notion of
-equality than conventional naming schema (i.e. `openssl-3.0.8`). A "purely
-functional model" of software deployment. What exactly is meant by "purely
-functional model" is slightly unclear, but my understanding is that it boils
-down to immutable build artifacts, pure build processes (depend only on their
-inputs) that admit no side-effects, and compositionality of software
-components.[^2] The purely functional bit is particularly confusing
-because the nix expression language is itself purely functional, but the real
-critical piece is the functional principles applied to build and deployment
-strategies.
+I'm going to start at the end of the thesis. Dolstra, summarizing the thesis in
+the conclusion, says that the purpose of the project was to achieve a system
+for correct software deployment. He then goes on to explain that correctness is
+achieved through two main vehicles. First, through a precise naming scheme
+that leverages cryptographic hashes to concisely summarize the software
+identified by said name. This naming schema helps us achieve a much richer
+notion of equality than conventional naming schema (i.e. `openssl-3.0.8`).
+A "purely functional model" of software deployment. What exactly is meant
+by "purely functional model" is slightly unclear, but my understanding is
+that it boils down to immutable build artifacts, pure build processes
+(depend only on their inputs) that admit no side-effects, and
+compositionality of software components.[^2] The purely functional bit is
+particularly confusing because the nix expression language is itself purely
+functional, but the really critical piece is the functional principles
+applied to build and deployment strategies.
 
-One ambiguity that might be confusing is that there is a distinction between
-the philosophical aspects of the thesis (i.e. an ontology of software
+One ambiguity that might lead to confusion is that there is a distinction
+between the philosophical aspects of the thesis (i.e. an ontology of software
 deployment, and what constitutes correct software deployment), and the
 techniques / implementations that are guided by the theory. The [Implementation
 Details](#implementation-details) section will try to explain how constructs
-(like the cryptographic naming scheme, and purely functional deployment model)
+(such as the cryptographic naming scheme, and purely functional deployment model)
 connect to the theory, albeit with less formality than the original thesis. The
-current section will look at the philosophy, and therefore will focus on:
+current section will look at the philosophy, and focusing on:
 
 - What is meant by correctness?
 - What does software deployment entail?
@@ -122,7 +122,7 @@ To make the example more concrete: perhaps the purple dot on the left is
 `openssl-3.0.8` and the orange dot is `openssl-1.1`, and the blue dot on the
 right is just a requirement for `openssl`, and the arrows from the purple and
 orange dot are a lookup on `$PATH` for `/usr/bin/openssl`. Well, since both
-versions of `openssl` can live at that location, we aren't sure which we will
+versions of `openssl` can live at that location, we are not sure which we will
 get, and therefore we might get a different component than the one that we
 actually mean, the way that we identify components in this example is too
 coarse grained.
@@ -138,7 +138,7 @@ one software component corresponding to every dependency requirement.
 > unsatisfied you can imagine a pruning function that eliminates superfluous
 > components that can be pre-composed with this function.
 
-To re-iterate, `correctness = completeness + no intereference`:
+To reiterate, `correctness = completeness + no intereference`:
 
 - To ensure **completeness** we must guarantee that _at least one_ component is
   identified for every required dependency
@@ -161,7 +161,7 @@ user environments. Here are some examples compiled from the thesis[^4]:
 - Dependency identification, compatibility of the software provided with
   dependency requirements, and location on the system (finding the dependency)
 - Implicit environment state: configuration files, an initialized database, system architectures.
-- Distinguishing between buildtime and runtime dependencies.
+- Distinguishing between build time and runtime dependencies.
 
 These problems can be classed into two broader buckets: identification and
 realization.[^5] I think that identification is more closely related to
@@ -210,7 +210,7 @@ systems[^7]:
 - Incomplete deployment.[^10]
 
 All of these issues appear in the most widely used operating systems today.
-When you enumerate the list its pretty surprising that end users put up with
+When you enumerate the list it's pretty surprising that end users put up with
 these difficulties. In fact Dolstra comments that the system that comes closest
 to correct deployment is not actually a classical deployment system but
 "developer side" Software Configuration Management tools which are basically
@@ -228,27 +228,27 @@ The core principles of the Nix deployment approach are to[^12]:
 2. Choose a naming schema (cryptographic hash) that summarizes the semantics of what we mean when we name a component.
 3. The semantics of the naming schema need to prevent undeclared dependencies and allow for multiple variants of software to co-exist.
 
-I will try and break these three principles down, but they are heavily related,
+I will try and break these three principles down, but they are extensively interrelated,
 so it can be difficult to disambiguate them.
 
 The central store is critical for the "realization" of components (as mentioned
 in the [Software Deployment](#software-deployment) section), it gives us a
-single place to look to find dependencies once we have identified the ones that
-we want. The isolation of components mitigates against the potential downside
-of a single store, namely interference.
+single place to look to find the dependencies that have already been
+identified. The isolation of components mitigates against the potential
+downside of a single store, namely interference.
 
 The naming schema is critical for the "identification" of components.
 Cryptographic hashes mean that we have a massive collision free namespace to
 work with, and those hashes can concisely summarize information that we wish to
 encode in the name.
 
-The semantics of the naming schema ensures correctness. Since the
-cryptographic hash is generated from all the inputs (think dependencies)
+The semantics of the naming schema is important for ensuring correctness. Since
+the cryptographic hash is generated from all the inputs (think dependencies)
 required to build the software, we have a robust notion of equality with which
 to distinguish components. Additionally, Nix uses this knowledge of all the
 inputs to ensure that there are no undeclared dependencies at build time.
 
-An important aside here is that we have mostly been talking about Nix's notion
+A notable aside here is that we have mostly been talking about Nix's notion
 of equality to distinguish components. But it is desirable that we share as
 many components as possible, and don't need to rebuild components that are
 equal. So this notion of equality prevents interference, but it can also be
@@ -327,7 +327,7 @@ presence of a dependency implicitly then the build will just _fail_.[^19]
 The key to this is that, if a dependency is not explicitly declared, then the
 component will fail deterministically.[^20]
 
-The cryptographic hash ensures that all buildtime dependencies are accounted
+The cryptographic hash ensures that all build time dependencies are accounted
 for, but you might be wondering about runtime dependencies. Runtime
 dependencies will be referenced in the actual component, and will be
 distinctive since it must reference a Nix Store path (which necessarily
@@ -368,7 +368,7 @@ Understanding how pointers can be dereferenced is critical to preventing
 dangling pointers, so we will enumerate them below. The examples are in
 typescript and adapted from the original Java versions in the thesis, the class
 in the example is called `Buildtime` to denote that construction of the class
-represents buildtime, and there is a method called `runtime` to denote that the
+represents build time, and there is a method called `runtime` to denote that the
 execution of that method represents runtime.[^24]
 
 ### Obtained and dereferenced at runtime
@@ -387,10 +387,10 @@ class BuildTime {
 }
 ```
 
-### Obtained and dereferenced at buildtime
+### Obtained and dereferenced at build time
 
 This example cannot cause a dangling pointer because the pointer is
-dereferenced at buildtime: similar to static libraries, a compiler, or other
+dereferenced at build time: similar to static libraries, a compiler, or other
 things that are not usually retained in the build result.
 
 ```{.typescript}
@@ -407,7 +407,7 @@ class BuildTime {
 }
 ```
 
-### Obtained at buildtime, dereferenced at runtime
+### Obtained at build time, dereferenced at runtime
 
 This example represents Unix style dynamically linked libraries, for example
 storing the full path of a program in the `RPATH` of an application binary.
@@ -489,7 +489,7 @@ to the build process for another component. An example of late binding would be
 this program that references `foo` dynamically at runtime `execlp("foo",
 args)`. However, if the path is specified at build time (as Nix enforces), then
 this is becomes a static composition. Another way of phrasing this, is that Nix
-will require you to specify `foo` at buildtime, and therefore it enforces
+will require you to specify `foo` at build time, and therefore it enforces
 static compositions.
 
 There is a tradeoff here: dynamic means the ability to upgrade (perhaps fix)
@@ -571,6 +571,8 @@ than just nix. The second is [purenix](https://github.com/purenix-org/purenix)
 which uses the Purescript frontend language, and provides a backend that
 compiles to nix. While I would love to see either of these succeed, neither has
 reached critical adoption.
+
+If you would like to comment on this post, the comments section is [here](https://github.com/JonathanLorimer/jonathanlorimer.github.io/issues/11)
 
 # Footnotes
 [^1]: Dolstra, E. "The Purely Functional Software Deployment Model," 2006. https://books.google.ca/books?id=gP2kAAAACAAJ.
