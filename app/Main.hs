@@ -234,7 +234,10 @@ buildIndex = do
     lift $ do
         indexT <- compileTemplate' "site/templates/index.html"
         let withOgType = _Object . at "ogType" ?~ String "website"
-            indexHTML = T.unpack $ substitute indexT $ withOgType $ toJSON siteMeta
+            withTitle = _Object . at "title" ?~ String "Jonathan Lorimer's personal website"
+            withDescription = _Object . at "description" ?~ String "My personal blog, and a relatively up to date CV"
+            indexData = withDescription . withTitle . withOgType $ toJSON siteMeta
+            indexHTML = T.unpack $ substitute indexT indexData
         writeFile' (outputFolder </> "index.html") indexHTML
 
 -- | given a list of posts this will build a table of contents
