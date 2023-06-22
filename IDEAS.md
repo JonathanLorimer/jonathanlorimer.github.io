@@ -4,6 +4,7 @@
 - Incremental computation based UI library in Purescript
 
 ## Blog Posts
+- Summary of NixOS paper
 - High value low complexity type theory for the industrial programmer.
     - Cardinality of types
     - Expression problem
