@@ -4,18 +4,11 @@
   inputs = {
     # Nix Inputs
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-
-    # Haskell lib overrides
-    slick-src = {
-      url = "github:JonathanLorimer/slick/patch-1";
-      flake = false;
-    };
   };
 
   outputs =
     { self
     , nixpkgs
-    , slick-src
     }:
     let
       forAllSystems = function:
@@ -25,12 +18,11 @@
         ] (system: function rec {
           inherit system;
           pkgs = nixpkgs.legacyPackages.${system};
-          supportedGHCVersion = "927";
+          supportedGHCVersion = "928";
           compilerVersion = "ghc${supportedGHCVersion}";
           hsPkgs = pkgs.haskell.packages.${compilerVersion}.override {
             overrides = hfinal: hprev: {
               jonathanlorimerdev = hfinal.callCabal2nix "jonathanlorimerdev" ./. {};
-              slick = hfinal.callCabal2nix "slick" slick-src {};
             };
           };
         });

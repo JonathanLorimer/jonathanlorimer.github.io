@@ -2,11 +2,11 @@
   "nodes": {
     "nixpkgs": {
       "locked": {
-        "lastModified": 1684759798,
-        "narHash": "sha256-Kpbf5yKvKcj/yPqE1zYC6gju4JwTsYxTIZEvOII0jr4=",
+        "lastModified": 1690860117,
+        "narHash": "sha256-srkCfjMlg777HxDVMfhkIFgRhhtuZjIOIyR2ejLYK+Y=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "c7eb65213bd7d95eafb8c5e2e181f04da103d054",
+        "rev": "96d403ee2479f2070050353b94808209f1352edb",
         "type": "github"
       },
       "original": {
@@ -18,25 +18,7 @@
     },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs",
-        "slick-src": "slick-src"
-      }
-    },
-    "slick-src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1684938371,
-        "narHash": "sha256-WKVZ4Sn1M86fHmiOskOLDWLTEjwN+NP8rIWIjQGmjKk=",
-        "owner": "JonathanLorimer",
-        "repo": "slick",
-        "rev": "c5e8c6afbae4c8fa6c5615ebed95303ec84a3ef2",
-        "type": "github"
-      },
-      "original": {
-        "owner": "JonathanLorimer",
-        "ref": "patch-1",
-        "repo": "slick",
-        "type": "github"
+        "nixpkgs": "nixpkgs"
       }
     }
   },
