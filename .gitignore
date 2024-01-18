@@ -39,3 +39,5 @@ result/
 # Application
 build/
 .direnv/
+output/
+latex/

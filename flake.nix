@@ -4,11 +4,16 @@
   inputs = {
     # Nix Inputs
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    
+    # Zettelkasten
+    forester.url = "sourcehut:~jonsterling/ocaml-forester";
+    forester.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
     { self
     , nixpkgs
+    , forester
     }:
     let
       forAllSystems = function:
@@ -47,7 +52,16 @@
             dig
             mprocs
             watchexec
-          ] ++ (builtins.attrValues (import ./scripts.nix { s = pkgs.writeShellScriptBin; }));
+            forester.packages.${system}.default
+            texliveFull
+          ] ++ 
+          pkgs.lib.attrsets.attrValues (import ./scripts { 
+            inherit pkgs; 
+            ghcid = haskellPackages.ghcid;
+            cabal-install = haskellPackages.cabal-install;
+            forester = forester.packages.${system}.default;
+            texlive = texliveFull;
+          }); 
         }
       );
 
