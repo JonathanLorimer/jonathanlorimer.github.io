@@ -15,5 +15,10 @@
     runtimeInputs = [ forester texlive cabal-install ];
     text = builtins.readFile ./build.sh;
   };
+  buildForest = pkgs.writeShellApplication {
+    name = "build-forest";
+    runtimeInputs = [ forester texlive ];
+    text = builtins.readFile ./build-forest.sh;
+  };
   
 }

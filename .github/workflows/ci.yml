@@ -13,7 +13,9 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@main
 
       - name: Build 🔧
-        run: nix run
+        run: |
+          nix run
+          nix develop -c build-forest
 
       - name: Upload 📁
         uses: actions/upload-pages-artifact@main
