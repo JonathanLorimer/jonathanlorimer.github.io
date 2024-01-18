@@ -2,5 +2,5 @@ procs:
   server:
     cmd: ["serve", "build"]
   builder:
-    cmd: ["watchexec", "cabal run"]
+    cmd: ["watchexec", "build-all"]
 

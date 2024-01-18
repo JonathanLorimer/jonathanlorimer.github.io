@@ -347,6 +347,11 @@ buildGithubIdentityClaim = do
   outputFolder <- ask
   lift $ copyFileChanged "site/github.html" $ outputFolder <> "github.html"
 
+buildForestXSLT :: SiteM ()
+buildForestXSLT = do
+  outputFolder <- ask
+  lift $ copyFileChanged "site/forest.xsl" $ outputFolder <> "forest.xsl"
+
 {------------------------------------------------
                  Shake Build
  ------------------------------------------------}
@@ -360,6 +365,7 @@ buildRules = do
   buildFeed allPosts
   buildCNAME
   buildGithubIdentityClaim
+  buildForestXSLT
   copyStaticFiles
 
 main :: IO ()

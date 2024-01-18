@@ -12,12 +12,12 @@
   };
   buildAll = pkgs.writeShellApplication {
     name = "build-all";
-    runtimeInputs = [ forester texlive cabal-install ];
+    runtimeInputs = with pkgs; [ forester texlive cabal-install ruplacer ];
     text = builtins.readFile ./build.sh;
   };
   buildForest = pkgs.writeShellApplication {
     name = "build-forest";
-    runtimeInputs = [ forester texlive ];
+    runtimeInputs = with pkgs; [ forester texlive ruplacer ];
     text = builtins.readFile ./build-forest.sh;
   };
   
