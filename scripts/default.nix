@@ -20,5 +20,9 @@
     runtimeInputs = with pkgs; [ forester texlive ruplacer ];
     text = builtins.readFile ./build-forest.sh;
   };
-  
+  new = pkgs.writeShellApplication {
+    name = "new";
+    runtimeInputs = [ forester ];
+    text = builtins.readFile ./new.sh;
+  };
 }
