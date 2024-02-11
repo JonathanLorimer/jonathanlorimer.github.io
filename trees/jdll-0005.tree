@@ -1,0 +1,8 @@
+\title{Algorithms}
+\author{jonathanlorimer}
+\date{2024-02-11}
+
+
+\transclude{how_to_design_co_programs}
+\transclude{algorithm_design_with_haskell}
+\transclude{pearls_of_functional_algorithm_design}

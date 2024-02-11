@@ -1,0 +1,5 @@
+\title{How to Design Co-Programs}
+\taxon{resource}
+\meta{external}{https://www.cs.ox.ac.uk/jeremy.gibbons/publications/copro.pdf}
+
+\p{This paper briefly discusses how to design programs based on their inputs and recursive structure. However, it more deeply investigates a formula for designing programs based off their outputs and a co-recursive structure.}

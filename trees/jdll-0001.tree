@@ -7,8 +7,8 @@ This is my personal set of notes inspired by
 [stacks](https://www.jonmsterling.com/stacks-project.xml), [evergreen
 notes](https://notes.andymatuschak.org/Evergreen_notes), and
 [zettelkasten](https://jonathanlorimer.dev/posts/smart-notes-review.html). This
-page is intended to be the primarry index and links out to other index cards
+page is intended to be the primary index and links out to other index cards
 that are concept specific.
 }
 \transclude{jdll-0002}
-
+\transclude{jdll-0004}
