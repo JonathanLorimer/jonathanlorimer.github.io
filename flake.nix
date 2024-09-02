@@ -4,23 +4,18 @@
   inputs = {
     # Nix Inputs
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    
-    # Zettelkasten
-    forester.url = "sourcehut:~jonsterling/ocaml-forester";
-    forester.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs =
-    { self
-    , nixpkgs
-    , forester
-    }:
-    let
-      forAllSystems = function:
-        nixpkgs.lib.genAttrs [
-          "x86_64-linux"
-          "aarch64-linux"
-        ] (system: function rec {
+  outputs = {
+    self,
+    nixpkgs,
+  }: let
+    forAllSystems = function:
+      nixpkgs.lib.genAttrs [
+        "x86_64-linux"
+        "aarch64-linux"
+      ] (system:
+        function rec {
           inherit system;
           pkgs = nixpkgs.legacyPackages.${system};
           supportedGHCVersion = "928";
@@ -31,50 +26,54 @@
             };
           };
         });
-    in
-    {
-      # nix fmt
-      formatter = forAllSystems ({pkgs, ...}: pkgs.alejandra);
+  in {
+    # nix fmt
+    formatter = forAllSystems ({pkgs, ...}: pkgs.alejandra);
 
-      # nix develop
-      devShell = forAllSystems ({hsPkgs, pkgs, ...}:
+    # nix develop
+    devShell = forAllSystems (
+      {
+        hsPkgs,
+        pkgs,
+        ...
+      }:
         hsPkgs.shellFor {
           packages = p: [
             p.jonathanlorimerdev
           ];
-          buildInputs = with pkgs; [
-            hsPkgs.haskell-language-server
-            haskellPackages.cabal-install
-            haskellPackages.ghcid
-            haskellPackages.fourmolu
-            haskellPackages.cabal-fmt
-            nodePackages.serve
-            dig
-            mprocs
-            watchexec
-            forester.packages.${system}.default
-            texliveFull
-          ] ++ 
-          pkgs.lib.attrsets.attrValues (import ./scripts { 
-            inherit pkgs; 
-            ghcid = haskellPackages.ghcid;
-            cabal-install = haskellPackages.cabal-install;
-            forester = forester.packages.${system}.default;
-            texlive = texliveFull;
-          }); 
+          buildInputs = with pkgs;
+            [
+              hsPkgs.haskell-language-server
+              haskellPackages.cabal-install
+              haskellPackages.ghcid
+              haskellPackages.fourmolu
+              haskellPackages.cabal-fmt
+              nodePackages.serve
+              dig
+              mprocs
+              watchexec
+            ]
+            ++ pkgs.lib.attrsets.attrValues (import ./scripts {
+              inherit pkgs;
+              ghcid = haskellPackages.ghcid;
+              cabal-install = haskellPackages.cabal-install;
+            });
         }
-      );
+    );
 
-      # nix build
-      packages = forAllSystems ({hsPkgs, ...}: rec {
-        jonathanlorimerdev = hsPkgs.jonathanlorimerdev;
-        default = jonathanlorimerdev;
-      });
+    # nix build
+    packages = forAllSystems ({hsPkgs, ...}: rec {
+      jonathanlorimerdev = hsPkgs.jonathanlorimerdev;
+      default = jonathanlorimerdev;
+    });
 
-      # nix run
-      apps = forAllSystems ({system, ...}: rec {
-        build-site = { type = "app"; program = "${self.packages.${system}.jonathanlorimerdev}/bin/build-site"; };
-        default = build-site;
-      });
-    };
+    # nix run
+    apps = forAllSystems ({system, ...}: rec {
+      build-site = {
+        type = "app";
+        program = "${self.packages.${system}.jonathanlorimerdev}/bin/build-site";
+      };
+      default = build-site;
+    });
+  };
 }

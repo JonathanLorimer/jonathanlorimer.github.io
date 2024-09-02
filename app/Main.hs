@@ -120,6 +120,7 @@ data Experience = Experience
   , startDate :: String
   , endDate :: Maybe String
   , technologies :: [Technology]
+  , hasTechnologies :: Bool
   , content :: String
   }
   deriving (Generic, Eq, Show, FromJSON, Binary)
@@ -184,7 +185,7 @@ mdToHTML = markdownToHTMLWithOpts markdownOptions defaultHtml5Options
                     Builders
 ------------------------------------------------}
 buildExperience :: FilePath -> Action Experience
-buildExperience srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
+buildExperience srcPath = cacheAction ("build experience" :: T.Text, srcPath) $ do
   liftIO . putStrLn $ "Rebuilding aboutme/experience: " <> srcPath
   experienceContent <- readFile' srcPath
   -- load post content and metadata as JSON blob
@@ -192,7 +193,7 @@ buildExperience srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
   convert experienceData
 
 buildBio :: FilePath -> Action Bio
-buildBio srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
+buildBio srcPath = cacheAction ("build bio" :: T.Text, srcPath) $ do
   liftIO . putStrLn $ "Rebuilding aboutme/bio: " <> srcPath
   bioContent <- readFile' srcPath
   -- load post content and metadata as JSON blob
@@ -200,7 +201,7 @@ buildBio srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
   convert bioData
 
 buildEducation :: FilePath -> Action Education
-buildEducation srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
+buildEducation srcPath = cacheAction ("build education" :: T.Text, srcPath) $ do
   liftIO . putStrLn $ "Rebuilding aboutme/education: " <> srcPath
   eduContent <- readFile' srcPath
   -- load post content and metadata as JSON blob
@@ -347,11 +348,6 @@ buildGithubIdentityClaim = do
   outputFolder <- ask
   lift $ copyFileChanged "site/github.html" $ outputFolder <> "github.html"
 
-buildForestXSLT :: SiteM ()
-buildForestXSLT = do
-  outputFolder <- ask
-  lift $ copyFileChanged "site/forest.xsl" $ outputFolder <> "forest.xsl"
-
 {------------------------------------------------
                  Shake Build
  ------------------------------------------------}
@@ -365,7 +361,6 @@ buildRules = do
   buildFeed allPosts
   buildCNAME
   buildGithubIdentityClaim
-  buildForestXSLT
   copyStaticFiles
 
 main :: IO ()
