@@ -9,8 +9,8 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
 
-      - uses: jlumbroso/free-disk-space@main
-        if: matrix.os == 'ubuntu-22.04' 
+      - name: Clear Space 💽
+        uses: jlumbroso/free-disk-space@main
 
       - name: Install Nix ❄️ # This example project is built using npm and outputs the result to the 'build' folder. Replace with the commands required to build your project, or remove this step entirely if your site is pre-built.
         uses: DeterminateSystems/nix-installer-action@main
