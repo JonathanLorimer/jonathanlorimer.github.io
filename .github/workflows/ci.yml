@@ -21,7 +21,6 @@ jobs:
       - name: Build 🔧
         run: |
           nix run
-          nix develop -c build-forest
 
       - name: Upload 📁
         uses: actions/upload-pages-artifact@main
