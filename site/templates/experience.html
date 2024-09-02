@@ -1,36 +1,44 @@
 <ul>
-    {{#experience}}
-        <li class="experience-container">
+  {{#experience}}
+  <li class="experience-container">
 
-          <div class="left">
+    <div class="left">
 
-            <section class="employment-details">
-              <h1 class="job-title">{{title}}</h1>
-              <h2 class="company">{{company}}</h2>
-              <div class="dates-container">
-                <span>{{startDate}}</span>
-                <span>-</span>
-                {{#endDate}}
-                <span>{{endDate}}</span>
-                {{/endDate}}
-                {{^endDate}}
-                <span>Current</span>
-                {{/endDate}}
+      <section class="employment-details">
+        <h1 class="job-title">{{title}}</h1>
+        <h2 class="company">{{company}}</h2>
+        <div class="dates-container">
+          <span>{{startDate}}</span>
+          <span>-</span>
+          {{#endDate}}
+          <span>{{endDate}}</span>
+          {{/endDate}}
+          {{^endDate}}
+          <span>Current</span>
+          {{/endDate}}
 
-              </div>
-              <div>{{location}}</div>
-            </section>
-          </div>
+        </div>
+        <div>{{location}}</div>
+      </section>
+    </div>
 
-          <div class="technologies">
-            <h2 class="stack"> techStack =</h2>
-            <ul class="tech-list">
-              {{#technologies}}
-              <li class="tech-item">{{technology}}</li>
-              {{/technologies}}
-            </ul>
-          </div>
+    {{#hasTechnologies}}
+    <div class="technologies">
+      <ul class="tech-list">
+        {{#technologies}}
+        <li class="tech-item">{{technology}}</li>
+        {{/technologies}}
+      </ul>
+    </div>
+    {{/hasTechnologies}}
+    {{^hasTechnologies}}
+    <div class="repeated-technology">
+      <span class="repeated-technology-arrow-up">
+        ↑
+      </span>
+    </div>
+    {{/hasTechnologies}}
 
-        </li>
-    {{/experience}}
+  </li>
+  {{/experience}}
 </ul>
