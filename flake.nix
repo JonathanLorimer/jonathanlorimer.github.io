@@ -18,7 +18,7 @@
         function rec {
           inherit system;
           pkgs = nixpkgs.legacyPackages.${system};
-          supportedGHCVersion = "928";
+          supportedGHCVersion = "96";
           compilerVersion = "ghc${supportedGHCVersion}";
           hsPkgs = pkgs.haskell.packages.${compilerVersion}.override {
             overrides = hfinal: hprev: {
